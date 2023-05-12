@@ -1,36 +1,36 @@
 
 # Table of Contents
 
-1.  [tera](#org76bb632)
-    1.  [general](#org7236af6)
-        1.  [downloads:](#org5c2367e)
-    2.  [pros](#org9b137d2)
-    3.  [cons](#orgf37feb2)
-    4.  [Examples:](#org14adc0d)
-2.  [gtmpl](#orgb7b031b)
-    1.  [general](#org789513c)
-        1.  [downloads](#orgf4d292a)
-    2.  [pros](#org8b5b9dc)
-    3.  [cons](#orga94a110)
-    4.  [Examples:](#orgd4de1e3)
-3.  [askama](#org590d548)
-    1.  [general](#org1198815)
-        1.  [downloads](#orgcad2411)
-    2.  [pros](#org5c02850)
-    3.  [cons](#org186b217)
-    4.  [Examples](#orga9b9b83)
-        1.  [template example](#org9c18757)
-        2.  [code example](#orgab1f867)
-        3.  [output](#org80bac22)
-4.  [final notes:](#org4aea262)
+1.  [tera](#org6e04e29)
+    1.  [general](#org0e9028b)
+        1.  [downloads:](#org9cc41da)
+    2.  [pros](#orgd05b81c)
+    3.  [cons](#orgf0724fd)
+    4.  [Examples:](#org3afaff0)
+2.  [gtmpl](#orgf4ba68f)
+    1.  [general](#org2a8c542)
+        1.  [downloads](#orgfc7ae21)
+    2.  [pros](#org70f311a)
+    3.  [cons](#orgbc1694a)
+    4.  [Examples:](#org015269a)
+3.  [askama](#orgaf591f3)
+    1.  [general](#org02eb80d)
+        1.  [downloads](#orgba45e72)
+    2.  [pros](#org20dae80)
+    3.  [cons](#org93ff48b)
+    4.  [Examples](#orgdaf313b)
+        1.  [template example](#org86a5773)
+        2.  [code example](#orgfd86233)
+        3.  [output](#org10b232e)
+4.  [final notes:](#orgbc7144d)
 
 
-<a id="org76bb632"></a>
+<a id="org6e04e29"></a>
 
 # tera
 
 
-<a id="org7236af6"></a>
+<a id="org0e9028b"></a>
 
 ## general
 
@@ -40,7 +40,7 @@
 -   Updated: about 2 months ago
 
 
-<a id="org5c2367e"></a>
+<a id="org9cc41da"></a>
 
 ### downloads:
 
@@ -48,7 +48,7 @@
 -   Recent: 773,985
 
 
-<a id="org9b137d2"></a>
+<a id="orgd05b81c"></a>
 
 ## pros
 
@@ -60,26 +60,26 @@
 -   good documentation <https://tera.netlify.app/docs>
 
 
-<a id="orgf37feb2"></a>
+<a id="orgf0724fd"></a>
 
 ## cons
 
 -   some type checking but happens in runtime
 
 
-<a id="org14adc0d"></a>
+<a id="org3afaff0"></a>
 
 ## Examples:
 
 <https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e5098e8fc/templateTest/src> (doesn&rsquo;t use lazy-statics <https://crates.io/crates/lazy_static> for statics at runtime)
 
 
-<a id="orgb7b031b"></a>
+<a id="orgf4ba68f"></a>
 
 # gtmpl
 
 
-<a id="org789513c"></a>
+<a id="org2a8c542"></a>
 
 ## general
 
@@ -89,7 +89,7 @@
 -   Updated: almost 2 years ago
 
 
-<a id="orgf4d292a"></a>
+<a id="orgfc7ae21"></a>
 
 ### downloads
 
@@ -97,7 +97,7 @@
 -   Recent: 16,121
 
 
-<a id="org8b5b9dc"></a>
+<a id="org70f311a"></a>
 
 ## pros
 
@@ -107,7 +107,7 @@
 -   jan gottschick recommended
 
 
-<a id="orga94a110"></a>
+<a id="orgbc1694a"></a>
 
 ## cons
 
@@ -119,19 +119,19 @@
 -   very little documentation <https://docs.rs/crate/gtmpl/latest>
 
 
-<a id="orgd4de1e3"></a>
+<a id="org015269a"></a>
 
 ## Examples:
 
 <https://github.com/crustacgen/playground/tree/Niclas>
 
 
-<a id="org590d548"></a>
+<a id="orgaf591f3"></a>
 
 # askama
 
 
-<a id="org1198815"></a>
+<a id="org02eb80d"></a>
 
 ## general
 
@@ -141,7 +141,7 @@
 -   Updated: 2 months ago
 
 
-<a id="orgcad2411"></a>
+<a id="orgba45e72"></a>
 
 ### downloads
 
@@ -149,7 +149,7 @@
 -   Recent: 549,705
 
 
-<a id="org5c02850"></a>
+<a id="org20dae80"></a>
 
 ## pros
 
@@ -159,23 +159,23 @@
 -   slightly faster (tho that shouldnt really matter)
 
 
-<a id="org186b217"></a>
+<a id="org93ff48b"></a>
 
 ## cons
 
 -   not as matured as tera
 
 
-<a id="orga9b9b83"></a>
+<a id="orgdaf313b"></a>
 
 ## Examples
 
 
-<a id="org9c18757"></a>
+<a id="org86a5773"></a>
 
 ### template example
 
-templates/pub.rs.jinja
+templates/pub.rs.jinja: (same as tera)
 
     use bytes::Bytes;
     use futures::StreamExt;
@@ -195,9 +195,11 @@ templates/pub.rs.jinja
     }
 
 
-<a id="orgab1f867"></a>
+<a id="orgfd86233"></a>
 
 ### code example
+
+src/main.rs
 
     use std::{fs::File, io::Write};
     
@@ -230,9 +232,11 @@ templates/pub.rs.jinja
     }
 
 
-<a id="org80bac22"></a>
+<a id="org10b232e"></a>
 
 ### output
+
+pub.rs
 
     use bytes::Bytes;
     use futures::StreamExt;
@@ -251,7 +255,7 @@ templates/pub.rs.jinja
     }
 
 
-<a id="org4aea262"></a>
+<a id="orgbc7144d"></a>
 
 # final notes:
 
