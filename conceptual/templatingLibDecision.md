@@ -1,40 +1,46 @@
 
 # Table of Contents
 
-1.  [tera](#org55bae48)
-    1.  [general](#orgaa23aef)
-        1.  [downloads:](#org6ba8ce0)
-    2.  [pros](#org9fc1ff3)
-    3.  [cons](#org4dcc781)
-2.  [gtmpl](#org2e000c9)
-    1.  [general](#orgbae2e61)
-        1.  [downloads](#orgff4617f)
-    2.  [pros](#org51c449b)
-    3.  [cons](#orged2d9de)
-3.  [askama](#org204926b)
-    1.  [general](#orgab98417)
-        1.  [downloads](#org9ec326a)
-    2.  [pros](#org5bbc3d6)
-    3.  [cons](#orgb86fef5)
-4.  [final notes:](#org81af531)
+1.  [tera](#org76bb632)
+    1.  [general](#org7236af6)
+        1.  [downloads:](#org5c2367e)
+    2.  [pros](#org9b137d2)
+    3.  [cons](#orgf37feb2)
+    4.  [Examples:](#org14adc0d)
+2.  [gtmpl](#orgb7b031b)
+    1.  [general](#org789513c)
+        1.  [downloads](#orgf4d292a)
+    2.  [pros](#org8b5b9dc)
+    3.  [cons](#orga94a110)
+    4.  [Examples:](#orgd4de1e3)
+3.  [askama](#org590d548)
+    1.  [general](#org1198815)
+        1.  [downloads](#orgcad2411)
+    2.  [pros](#org5c02850)
+    3.  [cons](#org186b217)
+    4.  [Examples](#orga9b9b83)
+        1.  [template example](#org9c18757)
+        2.  [code example](#orgab1f867)
+        3.  [output](#org80bac22)
+4.  [final notes:](#org4aea262)
 
 
-<a id="org55bae48"></a>
+<a id="org76bb632"></a>
 
 # tera
 
 
-<a id="orgaa23aef"></a>
+<a id="org7236af6"></a>
 
 ## general
 
--   jinja2 temlating engine
+-   jinja2 temlating engine (more common then gotemplate)
 -   MIT license
 -   2.7k github stars
 -   Updated: about 2 months ago
 
 
-<a id="org6ba8ce0"></a>
+<a id="org5c2367e"></a>
 
 ### downloads:
 
@@ -42,7 +48,7 @@
 -   Recent: 773,985
 
 
-<a id="org9fc1ff3"></a>
+<a id="org9b137d2"></a>
 
 ## pros
 
@@ -54,19 +60,26 @@
 -   good documentation <https://tera.netlify.app/docs>
 
 
-<a id="org4dcc781"></a>
+<a id="orgf37feb2"></a>
 
 ## cons
 
 -   some type checking but happens in runtime
 
 
-<a id="org2e000c9"></a>
+<a id="org14adc0d"></a>
+
+## Examples:
+
+<https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e5098e8fc/templateTest/src> (doesn&rsquo;t use lazy-statics <https://crates.io/crates/lazy_static> for statics at runtime)
+
+
+<a id="orgb7b031b"></a>
 
 # gtmpl
 
 
-<a id="orgbae2e61"></a>
+<a id="org789513c"></a>
 
 ## general
 
@@ -76,7 +89,7 @@
 -   Updated: almost 2 years ago
 
 
-<a id="orgff4617f"></a>
+<a id="orgf4d292a"></a>
 
 ### downloads
 
@@ -84,7 +97,7 @@
 -   Recent: 16,121
 
 
-<a id="org51c449b"></a>
+<a id="org8b5b9dc"></a>
 
 ## pros
 
@@ -94,7 +107,7 @@
 -   jan gottschick recommended
 
 
-<a id="orged2d9de"></a>
+<a id="orga94a110"></a>
 
 ## cons
 
@@ -106,12 +119,19 @@
 -   very little documentation <https://docs.rs/crate/gtmpl/latest>
 
 
-<a id="org204926b"></a>
+<a id="orgd4de1e3"></a>
+
+## Examples:
+
+<https://github.com/crustacgen/playground/tree/Niclas>
+
+
+<a id="org590d548"></a>
 
 # askama
 
 
-<a id="orgab98417"></a>
+<a id="org1198815"></a>
 
 ## general
 
@@ -121,7 +141,7 @@
 -   Updated: 2 months ago
 
 
-<a id="org9ec326a"></a>
+<a id="orgcad2411"></a>
 
 ### downloads
 
@@ -129,7 +149,7 @@
 -   Recent: 549,705
 
 
-<a id="org5bbc3d6"></a>
+<a id="org5c02850"></a>
 
 ## pros
 
@@ -139,15 +159,99 @@
 -   slightly faster (tho that shouldnt really matter)
 
 
-<a id="orgb86fef5"></a>
+<a id="org186b217"></a>
 
 ## cons
 
--   may be harder to write
 -   not as matured as tera
 
 
-<a id="org81af531"></a>
+<a id="orga9b9b83"></a>
+
+## Examples
+
+
+<a id="org9c18757"></a>
+
+### template example
+
+templates/pub.rs.jinja
+
+    use bytes::Bytes;
+    use futures::StreamExt;
+    
+    #[tokio::main]
+    async fn main() -> Result<(), async_nats::Error> {
+        let client = async_nats::connect("{{ server }}").await?;
+    
+        let mut subscriber = client.subscribe("{{ subject }}".into()).await?.take(10);
+    
+        {% if publish  %}
+        for _ in 0..10 {
+            client.publish("{{ subject }}".into(), "{{ payload }}".into()).await?;
+        }
+        {% endif %}
+        Ok(())
+    }
+
+
+<a id="orgab1f867"></a>
+
+### code example
+
+    use std::{fs::File, io::Write};
+    
+    use askama::Template;
+    
+    #[derive(Template)]
+    #[template(path = "pub.rs.jinja")]
+    struct PublishTemplate<'a> {
+        publish: bool,
+        server: &'a str,
+        subject: &'a str,
+        payload: &'a str,
+    }
+    
+    fn main() {
+        let publish = PublishTemplate {
+            publish: true,
+            server: "localhost",
+            subject: "subject_test",
+            payload: "test_payload",
+        };
+    
+        let render = publish.render().unwrap();
+    
+        // write to file
+        let mut out_file = File::create("pub.rs").expect("Failed to create file");
+        out_file
+            .write_all(render.as_bytes())
+            .expect("failed to write into file");
+    }
+
+
+<a id="org80bac22"></a>
+
+### output
+
+    use bytes::Bytes;
+    use futures::StreamExt;
+    
+    #[tokio::main]
+    async fn main() -> Result<(), async_nats::Error> {
+        let client = async_nats::connect("localhost").await?;
+    
+        let mut subscriber = client.subscribe("subject_test".into()).await?.take(10);
+    
+        for _ in 0..10 {
+            client.publish("subject_test".into(), "test_payload".into()).await?;
+        }
+    
+        Ok(())
+    }
+
+
+<a id="org4aea262"></a>
 
 # final notes:
 
