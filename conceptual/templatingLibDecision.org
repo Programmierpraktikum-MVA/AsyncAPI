@@ -15,7 +15,7 @@
 + simple to use
 + good documentation https://tera.netlify.app/docs
 ** cons
-- some type checking but happens in runtime
+- no type checking
 ** Examples:
 https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e5098e8fc/templateTest/src (doesn't use lazy-statics https://crates.io/crates/lazy_static for statics at runtime)
 
@@ -37,9 +37,10 @@ https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e50
 - seems to change api/struct funcs more often -> upgrading may break has broken things
 - still in 0.7 release and last commit 2 years ago (seems dead?)
 - not used alot
-- less documentation
-- some type checking but happens in runtime
+- no type checking
 - very little documentation https://docs.rs/crate/gtmpl/latest
+- documentation doesn't mention filters or inheritance
+- barely used (see github stars)
 ** Examples:
 https://github.com/crustacgen/playground/tree/Niclas
 * askama
@@ -52,8 +53,23 @@ https://github.com/crustacgen/playground/tree/Niclas
 + All-Time: 3,072,505
 + Recent: 549,705
 ** pros
-+ uses macros under the hood, *"generated" code type safety assured while compiling generator!!!*
-+ specifically meant for generating rust code from templates
++ uses macros under the hood, checks template type e.g. template file:
+  #+begin_src rust
+{% if test %}
+let var = test;
+{% endif %}
+     #+end_src
+     generator file:
+     #+begin_src rust
+#[derive(Template)]
+struct ... {
+    test: i32
+}
+     #+end_src
+     would cause an error at compile time/ would show up in the ide since the types dont match
+     the other ones would just let it slide.
++ generally more compile time(lsp) checks e.g. variable not used in template
++ specifically (but not solely) meant for generating rust code from templates
 + very good documentation https://djc.github.io/askama/
 + slightly faster (tho that shouldnt really matter)
 ** cons
@@ -133,5 +149,6 @@ async fn main() -> Result<(), async_nats::Error> {
 #+end_src
 * final notes:
 + all seem to be feature equivalent.
-+ they support inheritance, filters, loops ...
++ tera and askama are fully featured and support inheritance, *filters*, loops ...
+  + gtmpl documentation and source code (https://github.com/fiji-flo/gtmpl-rust) dont mention any of these at all
 + all are similar in performance and minimal performance gains shouldn't matter during the generation process

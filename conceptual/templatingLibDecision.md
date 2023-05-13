@@ -1,36 +1,36 @@
 
 # Table of Contents
 
-1.  [tera](#org6e04e29)
-    1.  [general](#org0e9028b)
-        1.  [downloads:](#org9cc41da)
-    2.  [pros](#orgd05b81c)
-    3.  [cons](#orgf0724fd)
-    4.  [Examples:](#org3afaff0)
-2.  [gtmpl](#orgf4ba68f)
-    1.  [general](#org2a8c542)
-        1.  [downloads](#orgfc7ae21)
-    2.  [pros](#org70f311a)
-    3.  [cons](#orgbc1694a)
-    4.  [Examples:](#org015269a)
-3.  [askama](#orgaf591f3)
-    1.  [general](#org02eb80d)
-        1.  [downloads](#orgba45e72)
-    2.  [pros](#org20dae80)
-    3.  [cons](#org93ff48b)
-    4.  [Examples](#orgdaf313b)
-        1.  [template example](#org86a5773)
-        2.  [code example](#orgfd86233)
-        3.  [output](#org10b232e)
-4.  [final notes:](#orgbc7144d)
+1.  [tera](#org6eb77df)
+    1.  [general](#org5ea2165)
+        1.  [downloads:](#org35d61f3)
+    2.  [pros](#orgb005db8)
+    3.  [cons](#org5c3f77b)
+    4.  [Examples:](#org385114d)
+2.  [gtmpl](#org4c8367a)
+    1.  [general](#org46039ba)
+        1.  [downloads](#org80a5b1c)
+    2.  [pros](#org1b43a18)
+    3.  [cons](#org51a51e4)
+    4.  [Examples:](#orgd647256)
+3.  [askama](#org0e0dc08)
+    1.  [general](#org8936740)
+        1.  [downloads](#orga851b07)
+    2.  [pros](#orgf11124d)
+    3.  [cons](#orgcc0a8c1)
+    4.  [Examples](#orga040776)
+        1.  [template example](#org9f5563b)
+        2.  [code example](#org09c3417)
+        3.  [output](#orgbedae95)
+4.  [final notes:](#org67e7abe)
 
 
-<a id="org6e04e29"></a>
+<a id="org6eb77df"></a>
 
 # tera
 
 
-<a id="org0e9028b"></a>
+<a id="org5ea2165"></a>
 
 ## general
 
@@ -40,7 +40,7 @@
 -   Updated: about 2 months ago
 
 
-<a id="org9cc41da"></a>
+<a id="org35d61f3"></a>
 
 ### downloads:
 
@@ -48,7 +48,7 @@
 -   Recent: 773,985
 
 
-<a id="orgd05b81c"></a>
+<a id="orgb005db8"></a>
 
 ## pros
 
@@ -60,26 +60,26 @@
 -   good documentation <https://tera.netlify.app/docs>
 
 
-<a id="orgf0724fd"></a>
+<a id="org5c3f77b"></a>
 
 ## cons
 
--   some type checking but happens in runtime
+-   no type checking
 
 
-<a id="org3afaff0"></a>
+<a id="org385114d"></a>
 
 ## Examples:
 
 <https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e5098e8fc/templateTest/src> (doesn&rsquo;t use lazy-statics <https://crates.io/crates/lazy_static> for statics at runtime)
 
 
-<a id="orgf4ba68f"></a>
+<a id="org4c8367a"></a>
 
 # gtmpl
 
 
-<a id="org2a8c542"></a>
+<a id="org46039ba"></a>
 
 ## general
 
@@ -89,7 +89,7 @@
 -   Updated: almost 2 years ago
 
 
-<a id="orgfc7ae21"></a>
+<a id="org80a5b1c"></a>
 
 ### downloads
 
@@ -97,7 +97,7 @@
 -   Recent: 16,121
 
 
-<a id="org70f311a"></a>
+<a id="org1b43a18"></a>
 
 ## pros
 
@@ -107,31 +107,32 @@
 -   jan gottschick recommended
 
 
-<a id="orgbc1694a"></a>
+<a id="org51a51e4"></a>
 
 ## cons
 
 -   seems to change api/struct funcs more often -> upgrading may break has broken things
 -   still in 0.7 release and last commit 2 years ago (seems dead?)
 -   not used alot
--   less documentation
--   some type checking but happens in runtime
+-   no type checking
 -   very little documentation <https://docs.rs/crate/gtmpl/latest>
+-   documentation doesn&rsquo;t mention filters or inheritance
+-   barely used (see github stars)
 
 
-<a id="org015269a"></a>
+<a id="orgd647256"></a>
 
 ## Examples:
 
 <https://github.com/crustacgen/playground/tree/Niclas>
 
 
-<a id="orgaf591f3"></a>
+<a id="org0e0dc08"></a>
 
 # askama
 
 
-<a id="org02eb80d"></a>
+<a id="org8936740"></a>
 
 ## general
 
@@ -141,7 +142,7 @@
 -   Updated: 2 months ago
 
 
-<a id="orgba45e72"></a>
+<a id="orga851b07"></a>
 
 ### downloads
 
@@ -149,29 +150,44 @@
 -   Recent: 549,705
 
 
-<a id="org20dae80"></a>
+<a id="orgf11124d"></a>
 
 ## pros
 
--   uses macros under the hood, **&ldquo;generated&rdquo; code type safety assured while compiling generator!!!**
--   specifically meant for generating rust code from templates
+-   uses macros under the hood, checks template type e.g. template file:
+    
+        {% if test %}
+        let var = test;
+        {% endif %}
+    
+    generator file:
+    
+        #[derive(Template)]
+        struct ... {
+            test: i32
+        }
+    
+    would cause an error at compile time/ would show up in the ide since the types dont match
+    the other ones would just let it slide.
+-   generally more compile time(lsp) checks e.g. variable not used in template
+-   specifically (but not solely) meant for generating rust code from templates
 -   very good documentation <https://djc.github.io/askama/>
 -   slightly faster (tho that shouldnt really matter)
 
 
-<a id="org93ff48b"></a>
+<a id="orgcc0a8c1"></a>
 
 ## cons
 
 -   not as matured as tera
 
 
-<a id="orgdaf313b"></a>
+<a id="orga040776"></a>
 
 ## Examples
 
 
-<a id="org86a5773"></a>
+<a id="org9f5563b"></a>
 
 ### template example
 
@@ -195,7 +211,7 @@ templates/pub.rs.jinja: (same as tera)
     }
 
 
-<a id="orgfd86233"></a>
+<a id="org09c3417"></a>
 
 ### code example
 
@@ -232,7 +248,7 @@ src/main.rs
     }
 
 
-<a id="org10b232e"></a>
+<a id="orgbedae95"></a>
 
 ### output
 
@@ -255,11 +271,12 @@ pub.rs
     }
 
 
-<a id="orgbc7144d"></a>
+<a id="org67e7abe"></a>
 
 # final notes:
 
 -   all seem to be feature equivalent.
--   they support inheritance, filters, loops &#x2026;
+-   tera and askama are fully featured and support inheritance, **filters**, loops &#x2026;
+    -   gtmpl documentation and source code (<https://github.com/fiji-flo/gtmpl-rust>) dont mention any of these at all
 -   all are similar in performance and minimal performance gains shouldn&rsquo;t matter during the generation process
 
