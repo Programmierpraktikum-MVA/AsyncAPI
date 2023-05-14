@@ -1,0 +1,154 @@
+* tera
+** general
++ jinja2 temlating engine (more common then gotemplate)
++ MIT license
++ 2.7k github stars
++ Updated: about 2 months ago
+*** downloads:
++ All-Time: 5,664,947
++ Recent: 773,985
+** pros
++ widely used
++ templating language used alot in python
++ more active community
++ tera-cli
++ simple to use
++ good documentation https://tera.netlify.app/docs
+** cons
+- no type checking
+** Examples:
+https://github.com/crustacgen/playground/tree/f6034d5ce5369586e90157f8c3d0e03e5098e8fc/templateTest/src (doesn't use lazy-statics https://crates.io/crates/lazy_static for statics at runtime)
+
+* gtmpl
+** general
++ gotemplate engine
++ MIT license
++ 66 github stars
++ Updated: almost 2 years ago
+*** downloads
++ All-Time: 130,836
++ Recent: 16,121
+** pros
++ go-templates are specified in the doc (may be just a recommendation)
++ better interoperability with go projects
++ used by other project
++ jan gottschick recommended
+** cons
+- seems to change api/struct funcs more often -> upgrading may break has broken things
+- still in 0.7 release and last commit 2 years ago (seems dead?)
+- not used alot
+- no type checking
+- very little documentation https://docs.rs/crate/gtmpl/latest
+- documentation doesn't mention filters or inheritance
+- barely used (see github stars)
+** Examples:
+https://github.com/crustacgen/playground/tree/Niclas
+* askama
+** general
++ jinja2
++ Apache2, MIT dual license
++ 2.2k github stars
++  Updated: 2 months ago
+*** downloads
++ All-Time: 3,072,505
++ Recent: 549,705
+** pros
++ uses macros under the hood, checks template type e.g. template file:
+  #+begin_src rust
+{% if test %}
+let var = test;
+{% endif %}
+     #+end_src
+     generator file:
+     #+begin_src rust
+#[derive(Template)]
+struct ... {
+    test: i32
+}
+     #+end_src
+     would cause an error at compile time/ would show up in the ide since the types dont match
+     the other ones would just let it slide.
++ generally more compile time(lsp) checks e.g. variable not used in template
++ specifically (but not solely) meant for generating rust code from templates
++ very good documentation https://djc.github.io/askama/
++ slightly faster (tho that shouldnt really matter)
+** cons
+- not as matured as tera
+** Examples
+*** template example
+templates/pub.rs.jinja: (same as tera)
+#+begin_src rust :hlines yes
+use bytes::Bytes;
+use futures::StreamExt;
+
+#[tokio::main]
+async fn main() -> Result<(), async_nats::Error> {
+    let client = async_nats::connect("{{ server }}").await?;
+
+    let mut subscriber = client.subscribe("{{ subject }}".into()).await?.take(10);
+
+    {% if publish  %}
+    for _ in 0..10 {
+        client.publish("{{ subject }}".into(), "{{ payload }}".into()).await?;
+    }
+    {% endif %}
+    Ok(())
+}
+#+end_src
+*** code example
+src/main.rs
+#+begin_src rust  :hlines yes
+use std::{fs::File, io::Write};
+
+use askama::Template;
+
+#[derive(Template)]
+#[template(path = "pub.rs.jinja")]
+struct PublishTemplate<'a> {
+    publish: bool,
+    server: &'a str,
+    subject: &'a str,
+    payload: &'a str,
+}
+
+fn main() {
+    let publish = PublishTemplate {
+        publish: true,
+        server: "localhost",
+        subject: "subject_test",
+        payload: "test_payload",
+    };
+
+    let render = publish.render().unwrap();
+
+    // write to file
+    let mut out_file = File::create("pub.rs").expect("Failed to create file");
+    out_file
+        .write_all(render.as_bytes())
+        .expect("failed to write into file");
+}
+#+end_src
+*** output
+pub.rs
+#+begin_src rust
+use bytes::Bytes;
+use futures::StreamExt;
+
+#[tokio::main]
+async fn main() -> Result<(), async_nats::Error> {
+    let client = async_nats::connect("localhost").await?;
+
+    let mut subscriber = client.subscribe("subject_test".into()).await?.take(10);
+
+    for _ in 0..10 {
+        client.publish("subject_test".into(), "test_payload".into()).await?;
+    }
+
+    Ok(())
+}
+#+end_src
+* final notes:
++ all seem to be feature equivalent.
++ tera and askama are fully featured and support inheritance, *filters*, loops ...
+  + gtmpl documentation and source code (https://github.com/fiji-flo/gtmpl-rust) dont mention any of these at all
++ all are similar in performance and minimal performance gains shouldn't matter during the generation process
