@@ -69,6 +69,7 @@ struct ... {
      would cause an error at compile time/ would show up in the ide since the types dont match
      the other ones would just let it slide.
 + generally more compile time(lsp) checks e.g. variable not used in template
++ no more need for rust_embed, since everything apart from generation happens at compile time all files are allreay embedded
 + specifically (but not solely) meant for generating rust code from templates
 + very good documentation https://djc.github.io/askama/
 + slightly faster (tho that shouldnt really matter)
@@ -148,7 +149,6 @@ async fn main() -> Result<(), async_nats::Error> {
 }
 #+end_src
 * final notes:
-+ all seem to be feature equivalent.
 + tera and askama are fully featured and support inheritance, *filters*, loops ...
   + gtmpl documentation and source code (https://github.com/fiji-flo/gtmpl-rust) dont mention any of these at all
 + all are similar in performance and minimal performance gains shouldn't matter during the generation process
