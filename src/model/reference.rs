@@ -25,17 +25,20 @@ pub enum ReferenceOr<T> {
 }
 
 impl<T> ReferenceOr<T> {
+    #[allow(dead_code)]
     pub fn ref_(r: &str) -> Self {
         ReferenceOr::Reference {
             reference: r.to_owned(),
         }
     }
+    #[allow(dead_code)]
     pub fn boxed_item(item: T) -> ReferenceOr<Box<T>> {
         ReferenceOr::Item(Box::new(item))
     }
 }
 
 impl<T> ReferenceOr<Box<T>> {
+    #[allow(dead_code)]
     pub fn unbox(self) -> ReferenceOr<T> {
         match self {
             ReferenceOr::Reference { reference } => ReferenceOr::Reference { reference },

@@ -1,5 +1,3 @@
-
-
 use std::{
     fs::File,
     io::{Error, Write},
@@ -30,10 +28,13 @@ pub fn cargo_fmt(path: &PathBuf) -> Output {
         .expect("failed to format")
 }
 
-pub fn cargo_add(path: &Path, crate_name: &str) {
-    Command::new("cargo")
-        .arg("add")
-        .arg(crate_name)
+pub fn cargo_add(path: &Path, crate_name: &str, features: Option<&str>) {
+    let mut command_builder = Command::new("cargo");
+    command_builder.arg("add").arg(crate_name);
+    if let Some(features) = features {
+        command_builder.arg("--features").arg(features);
+    }
+    command_builder
         .arg(String::from("--manifest-path=") + path.to_str().unwrap() + "/Cargo.toml")
         .output()
         .expect("failed to add crate");

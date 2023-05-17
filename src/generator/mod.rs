@@ -1,6 +1,5 @@
-pub mod generator;
-
-pub use generator::write_to_file;
-pub use generator::cargo_init_project;
-pub use generator::cargo_fmt;
-pub use generator::cargo_add;
+mod common;
+pub use common::cargo_add;
+pub use common::cargo_fmt;
+pub use common::cargo_init_project;
+pub use common::write_to_file;

@@ -302,16 +302,11 @@ pub enum SolaceDestinationType {
 /// publishing messages as documented
 /// [here](https://docs.solace.com/PubSub-Basics/Core-Concepts-Message-Delivery-Modes.htm).
 /// Default is 'persistent'.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum SolaceDestinationDeliveryMode {
     Direct,
+    #[default]
     Persistent,
-}
-
-impl Default for SolaceDestinationDeliveryMode {
-    fn default() -> Self {
-        SolaceDestinationDeliveryMode::Persistent
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]

@@ -23,7 +23,7 @@ pub struct ServerBinding {
     /// Protocol-specific information for an AMQP 1.0 server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ampq1: Option<AMPQ1ServerBinding>,
-    ///	Protocol-specific information for an MQTT server.
+    /// Protocol-specific information for an MQTT server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mqtt: Option<MQTTServerBinding>,
     /// Protocol-specific information for an MQTT 5 server.
@@ -50,7 +50,7 @@ pub struct ServerBinding {
     /// Protocol-specific information for a Redis server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub redis: Option<RedisServerBinding>,
-    ///	Protocol-specific information for a Mercure server.
+    /// Protocol-specific information for a Mercure server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mercure: Option<MercureServerBinding>,
     /// Protocol-specific information for an IBM MQ server.

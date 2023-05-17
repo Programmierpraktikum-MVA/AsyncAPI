@@ -1,5 +1,5 @@
-use crate::model;
-use std::{path::Path, fs};
+use crate::model::{self, AsyncAPI, ReferenceOr};
+use std::{fs, io, path::Path};
 
 pub fn parse_asyncapi_yaml_file(path: &Path) -> Result<model::AsyncAPI, serde_yaml::Error> {
     let string_content = fs::read_to_string(path).expect("file could not be read");
@@ -17,4 +17,19 @@ pub fn parse_asyncapi_yaml_file(path: &Path) -> Result<model::AsyncAPI, serde_ya
         }
     };
     Ok(parsed)
+}
+
+pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<model::PubsubTemplate, io::Error> {
+    let item = spec.servers.first().unwrap().1;
+    let server = match item {
+        ReferenceOr::Item(it) => Some(it),
+        ReferenceOr::Reference { reference: _ } => None,
+    }
+    .unwrap()
+    .clone();
+
+    Ok(model::PubsubTemplate {
+        server_url: server.url,
+        channel_name: spec.channels.first().unwrap().0.clone(),
+    })
 }

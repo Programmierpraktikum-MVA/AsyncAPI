@@ -9,23 +9,16 @@ pub enum VariantOrUnknown<T> {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
+#[derive(Default)]
 pub enum VariantOrUnknownOrEmpty<T> {
     Item(T),
     Unknown(String),
+    #[default]
     Empty, // @todo this should serialize as nothing
 }
 
 impl<T> VariantOrUnknownOrEmpty<T> {
     pub fn is_empty(&self) -> bool {
-        match self {
-            VariantOrUnknownOrEmpty::Empty => true,
-            _ => false,
-        }
-    }
-}
-
-impl<T> Default for VariantOrUnknownOrEmpty<T> {
-    fn default() -> Self {
-        VariantOrUnknownOrEmpty::Empty
+        matches!(self, VariantOrUnknownOrEmpty::Empty)
     }
 }

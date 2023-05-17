@@ -479,8 +479,8 @@ fn test_deserialize_security_scheme() {
     in: user
     description: Provide your API key as the user and leave the password empty.
     "#;
-    let asyncapi: ReferenceOr<SecurityScheme> = serde_yaml::from_str(example)
-        .expect(&format!("Could not deserialize api key security scheme"));
+    let asyncapi: ReferenceOr<SecurityScheme> =
+        serde_yaml::from_str(example).expect("Could not deserialize api key security scheme");
     assert_eq!(
         ReferenceOr::Item(SecurityScheme::ApiKey {
             location: "user".to_string(),
