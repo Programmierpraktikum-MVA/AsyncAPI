@@ -1,21 +1,11 @@
-use crate::parser::{Operation, Server};
-use askama::Template;
-//use rust_embed::RustEmbed;
+
+
 use std::{
     fs::File,
     io::{Error, Write},
     path::{Path, PathBuf},
     process::{Command, Output},
 };
-
-#[derive(Template)]
-#[template(path = "main.rs", escape = "none", print = "none")]
-pub struct PublishTemplate<'a> {
-    pub server: &'a Server,
-    pub subscribe_channels: &'a Vec<(&'a String, &'a Operation)>,
-    pub publish_channels: &'a Vec<(&'a String, &'a Operation)>,
-    pub publish_data: &'a str,
-}
 
 pub fn write_to_file(content: &str, path: &PathBuf) -> Result<(), Error> {
     let mut out_file = File::create(path)?;
