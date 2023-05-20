@@ -1,10 +1,11 @@
+use super::schema_parser_mapper;
 use crate::{
     asyncapi_model::{AsyncAPI, OperationMessageType, Payload, ReferenceOr},
     template_model::PubsubTemplate,
 };
+use inflector::Inflector;
+use regex::Regex;
 use std::{collections::HashMap, io};
-
-use super::schema_parser_mapper;
 
 pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io::Error> {
     let item = spec.servers.first().unwrap().1;
@@ -22,10 +23,15 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
         .iter()
         .chain(sub_channels.iter())
         .flat_map(|x| {
+            let re = Regex::new(r"[^\w\s]").unwrap();
+            // Remove special chars, capitalize words, remove spaces
+            let mut root_msg_name = re.replace_all(x.0, " ").to_title_case().replace(' ', "");
+            // Append Message to the end of the name
+            root_msg_name.push_str("Message");
+
             let channel = x.1;
             let operation_message = channel.message.as_ref().unwrap();
             println!("\noperation_message: {:?}", operation_message);
-            let test_name = String::from("test_schema");
             match operation_message {
                 OperationMessageType::Map(map) => map
                     .values()
@@ -34,14 +40,10 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
                             Some(Payload::Schema(schema)) => {
                                 println!("\nschema: {:?}", schema);
                                 let mut structs = HashMap::new();
-                                schema_parser_mapper(
-                                    &Box::new(schema.clone()),
-                                    &test_name,
-                                    &mut structs,
-                                );
+                                schema_parser_mapper(&schema.clone(), &root_msg_name, &mut structs);
                                 vec![structs
-                                    .iter()
-                                    .map(|(_, v)| v.to_string())
+                                    .values()
+                                    .map(|v| v.to_string())
                                     .collect::<Vec<String>>()
                                     .join("\n")]
                             }
@@ -68,12 +70,12 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
                                 let mut structs = HashMap::new();
                                 schema_parser_mapper(
                                     &Box::new(schema.clone()),
-                                    &test_name,
+                                    &root_msg_name,
                                     &mut structs,
                                 );
                                 vec![structs
-                                    .iter()
-                                    .map(|(_, v)| v.to_string())
+                                    .values()
+                                    .map(|v| v.to_string())
                                     .collect::<Vec<String>>()
                                     .join("\n")]
                             }

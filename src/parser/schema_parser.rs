@@ -30,7 +30,7 @@ fn string_schema_to_string(_schema: &StringType, property_name: &str) -> String 
 }
 
 pub fn schema_parser_mapper(
-    schema: &Box<Schema>,
+    schema: &Schema,
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
 ) -> String {
@@ -40,16 +40,14 @@ pub fn schema_parser_mapper(
             Type::Object(y) => {
                 println!("object schema: {:?}", y);
                 let struct_name = object_schema_to_string(y, property_name, all_structs);
-                return format!("pub {}: {}", property_name, struct_name);
+                format!("pub {}: {}", property_name, struct_name)
             }
-            Type::String(y) => {
-                return string_schema_to_string(y, property_name);
-            }
+            Type::String(y) => string_schema_to_string(y, property_name),
             Type::Number(_) => {
-                return String::from(format!("pub {}: f64", property_name));
+                format!("pub {}: f64", property_name)
             }
             Type::Boolean {} => {
-                return String::from(format!("pub {}: bool", property_name));
+                format!("pub {}: bool", property_name)
             }
             _ => {
                 panic!("unhandeled schema type, {:?}", x);

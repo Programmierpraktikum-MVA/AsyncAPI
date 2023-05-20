@@ -16,7 +16,7 @@ fn main() {
 
     let title = Path::new(&spec.info.title);
     let output_path =
-        &Path::new("./output/").join(title.to_str().unwrap().replace(" ", "_").to_lowercase());
+        &Path::new("./output/").join(title.to_str().unwrap().replace(' ', "_").to_lowercase());
     println!("{:?}", spec);
 
     let template_path = Path::new("./templates/pubsub.tmpl");
