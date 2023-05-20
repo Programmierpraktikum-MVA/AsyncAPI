@@ -1,0 +1,26 @@
+{
+    "payload":
+    {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "signup": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "user",
+        "signup"
+      ]
+    }
+  }

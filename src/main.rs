@@ -11,7 +11,7 @@ use std::{
 };
 
 fn main() {
-    let specfile_path = Path::new("./specs/userSignupSubscriber.yaml");
+    let specfile_path = Path::new("./example/specs/userSignupSubscriber.yaml");
     let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
 
     let title = Path::new(&spec.info.title);
