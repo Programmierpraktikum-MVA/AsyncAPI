@@ -1,23 +1,38 @@
 mod asyncapi_model;
+mod cli;
 mod generator;
 mod parser;
 mod template_model;
 mod utils;
 
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
+use gtmpl::funcs::println;
+use quicli::prelude::*;
 use std::{
     fs::{self, create_dir_all},
     path::Path,
 };
+use structopt::StructOpt;
 
-fn main() {
-    let specfile_path = Path::new("./example/specs/userSignupSubscriber.yaml");
+fn main() -> CliResult {
+    let args = cli::Cli::from_args();
+
+    let specfile_path = Path::new(&args.specification_file);
+    println!("specfile_path: {:?}", specfile_path);
+
     let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
-
-    let title = Path::new(&spec.info.title);
-    let output_path =
-        &Path::new("./output/").join(title.to_str().unwrap().replace(' ', "_").to_lowercase());
     println!("{:?}", spec);
+
+    let title = match args.project_title {
+        Some(t) => t,
+        None => spec.info.title.clone(),
+    };
+
+    let output = args.output_directory;
+
+    let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
+
+    println!("output_path: {:?}", output_path);
 
     let template_path = Path::new("./templates/pubsub.tmpl");
     let template = fs::read_to_string(template_path).expect("file could not be read");
@@ -35,4 +50,6 @@ fn main() {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
+
+    Ok(())
 }
