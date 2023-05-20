@@ -1,34 +1,30 @@
 use super::schema_parser_mapper;
 use crate::{
-    asyncapi_model::{AsyncAPI, OperationMessageType, Payload, ReferenceOr},
+    asyncapi_model::{AsyncAPI, Operation, OperationMessageType, Payload, ReferenceOr, Schema},
+    parser::common::convert_string_to_valid_type_name,
     template_model::PubsubTemplate,
 };
-use inflector::Inflector;
-use regex::Regex;
 use std::{collections::HashMap, io};
 
-pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io::Error> {
-    let item = spec.servers.first().unwrap().1;
-    let server = match item {
-        ReferenceOr::Item(it) => Some(it),
-        ReferenceOr::Reference { reference: _ } => None,
-    }
-    .unwrap()
-    .clone();
+fn transform_schema_to_string_vec(schema: &Schema, root_struct_name: &str) -> Vec<String> {
+    let mut structs = HashMap::new();
+    schema_parser_mapper(&schema.clone(), &root_struct_name, &mut structs);
+    vec![structs
+        .values()
+        .map(|v| v.to_string())
+        .collect::<Vec<String>>()
+        .join("\n")]
+}
 
-    let pub_channels = spec.get_publish_channels();
-    let sub_channels = spec.get_subscribe_channels();
-
-    let schemas: Vec<String> = pub_channels
+fn extract_schemas_from_channels(
+    pub_channels: Vec<(&String, &Operation)>,
+    sub_channels: Vec<(&String, &Operation)>,
+) -> Vec<String> {
+    return pub_channels
         .iter()
         .chain(sub_channels.iter())
         .flat_map(|x| {
-            let re = Regex::new(r"[^\w\s]").unwrap();
-            // Remove special chars, capitalize words, remove spaces
-            let mut root_msg_name = re.replace_all(x.0, " ").to_title_case().replace(' ', "");
-            // Append Message to the end of the name
-            root_msg_name.push_str("Message");
-
+            let root_msg_name = convert_string_to_valid_type_name(x.0, "");
             let channel = x.1;
             let operation_message = channel.message.as_ref().unwrap();
             println!("\noperation_message: {:?}", operation_message);
@@ -38,14 +34,8 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
                     .flat_map(|message_ref_or_item| match message_ref_or_item {
                         ReferenceOr::Item(message) => match &message.payload {
                             Some(Payload::Schema(schema)) => {
-                                println!("\nschema: {:?}", schema);
-                                let mut structs = HashMap::new();
-                                schema_parser_mapper(&schema.clone(), &root_msg_name, &mut structs);
-                                vec![structs
-                                    .values()
-                                    .map(|v| v.to_string())
-                                    .collect::<Vec<String>>()
-                                    .join("\n")]
+                                println!("\nmap schema: {:?}", schema);
+                                transform_schema_to_string_vec(&schema, &root_msg_name)
                             }
                             Some(Payload::Any(val)) => {
                                 println!("\nPayload::Any: {:?}", val);
@@ -67,17 +57,7 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
                         ReferenceOr::Item(message) => match &message.payload {
                             Some(Payload::Schema(schema)) => {
                                 println!("\nsingle schema: {:?}", schema);
-                                let mut structs = HashMap::new();
-                                schema_parser_mapper(
-                                    &Box::new(schema.clone()),
-                                    &root_msg_name,
-                                    &mut structs,
-                                );
-                                vec![structs
-                                    .values()
-                                    .map(|v| v.to_string())
-                                    .collect::<Vec<String>>()
-                                    .join("\n")]
+                                transform_schema_to_string_vec(&schema, &root_msg_name)
                             }
                             _ => vec![], // or handle Payload::Any here
                         },
@@ -87,9 +67,22 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
             }
         })
         .collect();
+}
 
+pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io::Error> {
+    let item = spec.servers.first().unwrap().1;
+    let server = match item {
+        ReferenceOr::Item(it) => Some(it),
+        ReferenceOr::Reference { reference: _ } => None,
+    }
+    .unwrap()
+    .clone();
+
+    let pub_channels = spec.get_publish_channels();
+    let sub_channels = spec.get_subscribe_channels();
+
+    let schemas: Vec<String> = extract_schemas_from_channels(pub_channels, sub_channels);
     let joined_schemas = schemas.join("\n");
-
     println!("\nJoined schemas: {:?}", joined_schemas);
 
     Ok(PubsubTemplate {

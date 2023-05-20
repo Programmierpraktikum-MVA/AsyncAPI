@@ -1,8 +1,10 @@
 use crate::asyncapi_model::{
-    schema::{ObjectType, SchemaKind, StringType, Type},
+    schema::{ObjectType, SchemaKind, Type},
     ReferenceOr, Schema,
 };
 use std::{collections::HashMap, format};
+
+use super::common::convert_string_to_valid_type_name;
 
 // parses object definition to rust struct, inserts struct into hashmap, returns struct name
 fn object_schema_to_string(
@@ -10,7 +12,10 @@ fn object_schema_to_string(
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
 ) -> String {
-    let before_string = format!("use serde::{{Deserialize, Serialize}};\n#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n", property_name);
+    let before_string = format!(
+        "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
+        convert_string_to_valid_type_name(property_name, "")
+    );
     let after_string = String::from("\n}\n");
     let property_string_it = schema.properties.iter().map(|(key, val)| match val {
         ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
@@ -24,9 +29,20 @@ fn object_schema_to_string(
     property_name.to_string()
 }
 
-fn string_schema_to_string(_schema: &StringType, property_name: &str) -> String {
-    let content = format!("pub {}: String", property_name);
-    content
+fn sanitize_property_name(property_name: &str) -> String {
+    // TODO: do proper sanitization so that the property name is a valid rust identifier
+    property_name.replace("-", "_")
+}
+
+fn primitive_type_to_string(schema_type: Type, property_name: &str) -> String {
+    // TODO: Add support for arrays
+    match schema_type {
+        Type::String(_var) => format!("pub {}: String", sanitize_property_name(property_name)),
+        Type::Number(_var) => format!("pub {}: f64", sanitize_property_name(property_name)),
+        Type::Integer(_var) => format!("pub {}: int64", sanitize_property_name(property_name)) ,
+        Type::Boolean{} => format!("pub {}: bool", sanitize_property_name(property_name)),
+        _type => panic!("Unsupported schema type: Currently only supports string, number, integer and boolean types"),
+    }
 }
 
 pub fn schema_parser_mapper(
@@ -36,25 +52,20 @@ pub fn schema_parser_mapper(
 ) -> String {
     let schema_kind: &SchemaKind = &schema.schema_kind;
     match schema_kind {
-        SchemaKind::Type(x) => match x {
+        SchemaKind::Type(schema_type) => match schema_type {
             Type::Object(y) => {
                 println!("object schema: {:?}", y);
                 let struct_name = object_schema_to_string(y, property_name, all_structs);
-                format!("pub {}: {}", property_name, struct_name)
+                format!(
+                    "pub {}: {}",
+                    property_name,
+                    convert_string_to_valid_type_name(struct_name.as_str(), "").as_str()
+                )
             }
-            Type::String(y) => string_schema_to_string(y, property_name),
-            Type::Number(_) => {
-                format!("pub {}: f64", property_name)
-            }
-            Type::Boolean {} => {
-                format!("pub {}: bool", property_name)
-            }
-            _ => {
-                panic!("unhandeled schema type, {:?}", x);
-            }
+            _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),
         },
-        x => {
-            panic!("wrong schema kind {:?}", x);
+        _other_schema_kind => {
+            panic!("Unsupported schema kind {:?}", _other_schema_kind);
         }
     }
 }
