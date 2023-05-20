@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 servers:
   production:
-    url: demo.nats.io
+    url: 0.0.0.0:4222
     protocol: nats
 channels:
   user/signedup:
