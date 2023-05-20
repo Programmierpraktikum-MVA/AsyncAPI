@@ -6,7 +6,6 @@ mod template_model;
 mod utils;
 
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
-use gtmpl::funcs::println;
 use quicli::prelude::*;
 use std::{
     fs::{self, create_dir_all},
@@ -22,7 +21,7 @@ fn main() -> CliResult {
 
     let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
     println!("{:?}", spec);
-
+     
     let title = match args.project_title {
         Some(t) => t,
         None => spec.info.title.clone(),
