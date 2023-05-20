@@ -1,5 +1,7 @@
 use futures::StreamExt;
 
+{{ .schema }}
+
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
     let client = async_nats::connect("{{ .server_url }}").await?;
