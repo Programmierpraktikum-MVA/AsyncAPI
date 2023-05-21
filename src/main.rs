@@ -21,13 +21,13 @@ fn main() -> CliResult {
 
     let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
     println!("{:?}", spec);
-     
+
     let title = match args.project_title {
         Some(t) => t,
         None => spec.info.title.clone(),
     };
 
-    let output = args.output_directory;
+         let output = args.output_directory;
 
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
 
