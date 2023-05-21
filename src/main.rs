@@ -27,7 +27,7 @@ fn main() -> CliResult {
         None => spec.info.title.clone(),
     };
 
-         let output = args.output_directory;
+    let output = args.output_directory;
 
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
 
