@@ -8,7 +8,7 @@ use std::{collections::HashMap, io};
 
 fn transform_schema_to_string_vec(schema: &Schema, root_struct_name: &str) -> Vec<String> {
     let mut structs = HashMap::new();
-    schema_parser_mapper(&schema.clone(), &root_struct_name, &mut structs);
+    schema_parser_mapper(&schema.clone(), root_struct_name, &mut structs);
     vec![structs
         .values()
         .map(|v| v.to_string())
@@ -35,7 +35,7 @@ fn extract_schemas_from_channels(
                         ReferenceOr::Item(message) => match &message.payload {
                             Some(Payload::Schema(schema)) => {
                                 println!("\nmap schema: {:?}", schema);
-                                transform_schema_to_string_vec(&schema, &root_msg_name)
+                                transform_schema_to_string_vec(schema, &root_msg_name)
                             }
                             Some(Payload::Any(val)) => {
                                 println!("\nPayload::Any: {:?}", val);
@@ -57,7 +57,7 @@ fn extract_schemas_from_channels(
                         ReferenceOr::Item(message) => match &message.payload {
                             Some(Payload::Schema(schema)) => {
                                 println!("\nsingle schema: {:?}", schema);
-                                transform_schema_to_string_vec(&schema, &root_msg_name)
+                                transform_schema_to_string_vec(schema, &root_msg_name)
                             }
                             _ => vec![], // or handle Payload::Any here
                         },

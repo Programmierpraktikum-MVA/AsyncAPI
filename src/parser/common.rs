@@ -11,6 +11,7 @@ pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_yaml::Error> {
     let parsed = match path.extension() {
         Some(ext) => match ext.to_str() {
             Some("yaml") => serde_yaml::from_str::<AsyncAPI>(&string_content).unwrap(),
+            Some("yml") => serde_yaml::from_str::<AsyncAPI>(&string_content).unwrap(),
             Some("json") => serde_json::from_str::<AsyncAPI>(&string_content).unwrap(),
             _ => {
                 panic!("file has no extension");

@@ -31,7 +31,7 @@ fn object_schema_to_string(
 
 fn sanitize_property_name(property_name: &str) -> String {
     // TODO: do proper sanitization so that the property name is a valid rust identifier
-    property_name.replace("-", "_")
+    property_name.replace('-', "_")
 }
 
 fn primitive_type_to_string(schema_type: Type, property_name: &str) -> String {
