@@ -21,7 +21,7 @@ fn main() -> CliResult {
 
     let template_path = Path::new("./templates/");
 
-    let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
+    let spec = parser::parse_spec_to_model(specfile_path).unwrap();
     println!("{:?}", spec);
 
     let title = match args.project_title {
