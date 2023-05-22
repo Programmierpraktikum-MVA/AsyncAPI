@@ -8,6 +8,12 @@ channels:
     subscribe:
       message:
         $ref: '#/components/messages/UserSignedUp'
+servers:
+  production:
+    url: 0.0.0.0:4222
+    protocol: nats
+    description: Test NATS Broker
+
 components:
   messages:
     UserSignedUp:
@@ -21,3 +27,11 @@ components:
             type: string
             format: email
             description: Email of the user
+          testNestedComponentMessage:
+            type: object
+            description: Nested
+            properties:
+              testNestedComponentMessageProperty:
+                type: string
+                description: Nested property
+          

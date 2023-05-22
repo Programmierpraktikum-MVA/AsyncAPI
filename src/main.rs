@@ -19,7 +19,7 @@ fn main() -> CliResult {
     let specfile_path = Path::new(&args.specification_file);
     println!("specfile_path: {:?}", specfile_path);
 
-    let spec = parser::parse_asyncapi_yaml_file(specfile_path).unwrap();
+    let spec = parser::parse_spec_to_model(specfile_path).unwrap();
     println!("{:?}", spec);
 
     let title = match args.project_title {

@@ -2,7 +2,8 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    Channel, Components, ExternalDocumentation, Info, Operation, ReferenceOr, Server, Tag,
+    Channel, Components, ExternalDocumentation, Info, Operation, Payload, ReferenceOr, Schema,
+    Server, Tag,
 };
 
 /// This is the root document object for the API specification.
@@ -169,7 +170,13 @@ pub struct AsyncAPI {
     pub extensions: IndexMap<String, serde_json::Value>,
 }
 impl AsyncAPI {
-    pub fn get_subscribe_channels(&self) -> Vec<(&String, &Operation)> {
+    pub fn get_all_channels_operations(&self) -> Vec<(&String, &Operation)> {
+        self.get_publish_channels_operations()
+            .into_iter()
+            .chain(self.get_subscribe_channels_operations())
+            .collect()
+    }
+    pub fn get_subscribe_channels_operations(&self) -> Vec<(&String, &Operation)> {
         self.channels
             .iter()
             .filter_map(|(channel_name, channel)| {
@@ -180,7 +187,7 @@ impl AsyncAPI {
             })
             .collect()
     }
-    pub fn get_publish_channels(&self) -> Vec<(&String, &Operation)> {
+    pub fn get_publish_channels_operations(&self) -> Vec<(&String, &Operation)> {
         self.channels
             .iter()
             .filter_map(|(channel_name, channel)| {
@@ -190,5 +197,23 @@ impl AsyncAPI {
                     .map(|operation| (channel_name, operation))
             })
             .collect()
+    }
+    pub fn get_components(&self) -> Option<&Components> {
+        self.components.as_ref()
+    }
+    pub fn get_schema_from_reference(&self, message_name: &str) -> &Schema {
+        self.get_components()
+            .and_then(|components| {
+                let message_or_ref = components.messages.get(message_name).unwrap();
+                let payload = match message_or_ref {
+                    ReferenceOr::Item(message) => message.payload.as_ref().unwrap(),
+                    ReferenceOr::Reference { .. } => return None, // or handle the reference case
+                };
+                Some(match payload {
+                    Payload::Schema(schema) => schema,
+                    Payload::Any(_) => return None,
+                })
+            })
+            .unwrap()
     }
 }
