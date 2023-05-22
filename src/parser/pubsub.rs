@@ -7,21 +7,21 @@ use inflector::Inflector;
 use regex::Regex;
 use std::{collections::HashMap, io};
 
-pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io::Error> {
+pub fn spec_to_pubsub_template_type<'a>(
+    spec: &'a AsyncAPI,
+) -> Result<PubsubTemplate<'a>, io::Error> {
     let item = spec.servers.first().unwrap().1;
     let server = match item {
-        ReferenceOr::Item(it) => Some(it),
-        ReferenceOr::Reference { reference: _ } => None,
-    }
-    .unwrap()
-    .clone();
+        ReferenceOr::Item(it) => it,
+        ReferenceOr::Reference { reference: _ } => None.unwrap(),
+    };
 
-    let pub_channels = spec.get_publish_channels();
-    let sub_channels = spec.get_subscribe_channels();
+    let publish_channels = spec.get_publish_channels();
+    let subscribe_channels = spec.get_subscribe_channels();
 
-    let schemas: Vec<String> = pub_channels
+    let schemas: Vec<String> = publish_channels
         .iter()
-        .chain(sub_channels.iter())
+        .chain(subscribe_channels.iter())
         .flat_map(|x| {
             let re = Regex::new(r"[^\w\s]").unwrap();
             // Remove special chars, capitalize words, remove spaces
@@ -91,10 +91,10 @@ pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io
     let joined_schemas = schemas.join("\n");
 
     println!("\nJoined schemas: {:?}", joined_schemas);
-
-    Ok(PubsubTemplate {
-        server_url: server.url,
-        channel_name: spec.channels.first().unwrap().0.clone(),
-        schema: joined_schemas,
-    })
+    let pubsub_template: PubsubTemplate<'a> = PubsubTemplate {
+        server,
+        subscribe_channels,
+        publish_channels,
+    };
+    Ok(pubsub_template)
 }

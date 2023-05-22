@@ -3,3 +3,4 @@
 /.vscode
 .vscode/settings.json
 /test_output
+Cargo.lock
