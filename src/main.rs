@@ -20,7 +20,7 @@ fn main() -> CliResult {
     let specfile_path = Path::new(&args.specification_file);
     println!("specfile_path: {:?}", specfile_path);
 
-    //let specfile_path = Path::new("./example/specs/basic.yaml");
+    let specfile_path = Path::new("./example/specs/basic.yaml");
 
     let template_path_main = Path::new("./templates/main.rs");
     let template_path_handler = Path::new("./templates/handler.rs");
