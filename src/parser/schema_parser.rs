@@ -2,31 +2,68 @@ use crate::asyncapi_model::{
     schema::{ObjectType, SchemaKind, Type},
     ReferenceOr, Schema,
 };
+use core::fmt;
 use std::{collections::HashMap, format};
 
 use super::common::convert_string_to_valid_type_name;
+
+#[derive(Debug)]
+pub enum SchemaParserError {
+    GenericError(String),
+}
+impl fmt::Display for SchemaParserError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SchemaParserError::GenericError(msg) => {
+                write!(f, "Error while parsing schema: {}", msg)
+            }
+        }
+    }
+}
+impl std::error::Error for SchemaParserError {}
 
 // parses object definition to rust struct, inserts struct into hashmap, returns struct name
 fn object_schema_to_string(
     schema: &ObjectType,
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
-) -> String {
+) -> Result<String, SchemaParserError> {
     let before_string = format!(
         "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
         convert_string_to_valid_type_name(property_name, "")
     );
     let after_string = String::from("\n}\n");
-    let property_string_it = schema.properties.iter().map(|(key, val)| match val {
-        ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
-        _ => {
-            panic!("Currently only supports string types")
+    let property_string_iterator: Vec<Result<String, SchemaParserError>> = schema
+        .properties
+        .iter()
+        .map(|(key, val)| match val {
+            ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
+            ReferenceOr::Reference { reference: _ } => {
+                return Err(SchemaParserError::GenericError(
+                    "References are not supported".to_string(),
+                ))
+            }
+        })
+        .collect();
+
+    // check for errors and return early if any
+    match property_string_iterator.iter().find(|x| x.is_err()) {
+        Some(Err(_)) => {
+            return Err(SchemaParserError::GenericError(
+                "Error while parsing schema".to_string(),
+            ))
         }
-    });
-    let property_string = property_string_it.collect::<Vec<String>>().join(",\n");
+        _ => {}
+    }
+
+    let property_string_iterator = property_string_iterator.into_iter().map(|x| x.unwrap());
+
+    let property_string = property_string_iterator
+        .collect::<Vec<String>>()
+        .join(",\n");
     let full_struct = before_string + &property_string + &after_string;
     all_structs.insert(property_name.to_string(), full_struct);
-    property_name.to_string()
+    Ok(property_name.to_string())
 }
 
 fn sanitize_property_name(property_name: &str) -> String {
@@ -49,20 +86,22 @@ pub fn schema_parser_mapper(
     schema: &Schema,
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
-) -> String {
+) -> Result<String, SchemaParserError> {
     let schema_kind: &SchemaKind = &schema.schema_kind;
     match schema_kind {
         SchemaKind::Type(schema_type) => match schema_type {
             Type::Object(y) => {
-                println!("object schema: {:?}", y);
-                let struct_name = object_schema_to_string(y, property_name, all_structs);
-                format!(
+                let struct_name = object_schema_to_string(y, property_name, all_structs)?;
+                Ok(format!(
                     "pub {}: {}",
                     property_name,
                     convert_string_to_valid_type_name(struct_name.as_str(), "").as_str()
-                )
+                ))
             }
-            _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),
+            _primitive_type => Ok(primitive_type_to_string(
+                _primitive_type.clone(),
+                property_name,
+            )),
         },
         _other_schema_kind => {
             panic!("Unsupported schema kind {:?}", _other_schema_kind);
@@ -113,7 +152,7 @@ mod tests {
             for (name, schema) in definition {
                 let s = Box::new(schema);
                 let structs = &mut HashMap::new();
-                schema_parser_mapper(&s, &name, structs);
+                schema_parser_mapper(&s, &name, structs).unwrap();
                 let filename_without_extension = Path::new(schema_paths)
                     .file_stem()
                     .unwrap()
