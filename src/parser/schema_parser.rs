@@ -109,7 +109,7 @@ mod tests {
                     .to_str()
                     .unwrap();
                 let out_dir = Path::new("./test_output/{}.rs").join(filename_without_extension);
-                utils::write_to_file(
+                utils::write_to_path_create_dir(
                     structs
                         .iter()
                         .map(|(_, v)| v.to_string())

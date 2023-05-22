@@ -1,39 +1,15 @@
 use crate::asyncapi_model::{Operation, Server};
-
 use gtmpl::Value;
 use serde::Serialize;
-
 use serde_json::Value as JsonValue;
 use std::string::*;
 
-// macro_rules! impl_gtmpl_value {
-//     ($struct_type:ty) => {
-//         impl gtmpl::Value for $struct_type {
-//             fn as_value(&self) -> gtmpl::Value {
-//                 let json_value = serde_json::to_value(self).unwrap();
-//                 serde_value_to_gtmpl_value(&json_value)
-//             }
-//         }
-//     };
-// }
 #[derive(Serialize, Debug)]
 pub struct PubsubTemplate<'a> {
     pub server: &'a Server,
     pub subscribe_channels: Vec<(&'a String, &'a Operation)>,
     pub publish_channels: Vec<(&'a String, &'a Operation)>,
 }
-// #[derive(Serialize, Debug)]
-// pub struct PubsubTemplate<'a> {
-//     pub server: &'a Server,
-//     pub subscribe_channels: Vec<Channel<'a>>,
-//     pub publish_channels: Vec<Channel<'a>>,
-// }
-
-// #[derive(Serialize, Debug)]
-// pub struct Channel<'a> {
-//     pub channel_name: &'a String,
-//     pub operation: &'a Operation,
-// }
 
 impl<'a> From<&PubsubTemplate<'a>> for gtmpl::Value {
     fn from(value: &PubsubTemplate<'a>) -> Self {
@@ -44,7 +20,7 @@ impl<'a> From<&PubsubTemplate<'a>> for gtmpl::Value {
 
 /// converts any serde serializable value to a gtmpl value
 /// WARNING: clones objects, so not exactly zero cost abstraction 🤷‍♂️
-pub fn serde_value_to_gtmpl_value(value: &serde_json::Value) -> gtmpl::Value {
+fn serde_value_to_gtmpl_value(value: &serde_json::Value) -> gtmpl::Value {
     match value {
         JsonValue::Null => Value::Nil,
         JsonValue::Bool(b) => Value::Bool(*b),
