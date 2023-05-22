@@ -7,15 +7,23 @@ use std::{collections::HashMap, format};
 
 use super::common::convert_string_to_valid_type_name;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SchemaParserError {
-    GenericError(String),
+    // error message, property name
+    GenericError(String, Option<String>),
 }
 impl fmt::Display for SchemaParserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SchemaParserError::GenericError(msg) => {
-                write!(f, "Error while parsing schema: {}", msg)
+            SchemaParserError::GenericError(msg, property_name) => {
+                let base_message = match property_name {
+                    Some(name) => format!(
+                        "Error while parsing schema, inside property:\"{}\";\n Message: {} ",
+                        msg, name
+                    ),
+                    None => "Error while parsing schema".to_string() + &msg.to_string(),
+                };
+                write!(f, "{}", base_message)
             }
         }
     }
@@ -40,7 +48,8 @@ fn object_schema_to_string(
             ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
             ReferenceOr::Reference { reference: _ } => {
                 return Err(SchemaParserError::GenericError(
-                    "References are not supported".to_string(),
+                    "References are not supported yet".to_string(),
+                    property_name.to_string().into(),
                 ))
             }
         })
@@ -48,10 +57,8 @@ fn object_schema_to_string(
 
     // check for errors and return early if any
     match property_string_iterator.iter().find(|x| x.is_err()) {
-        Some(Err(_)) => {
-            return Err(SchemaParserError::GenericError(
-                "Error while parsing schema".to_string(),
-            ))
+        Some(Err(e)) => {
+            return Err(e.clone());
         }
         _ => {}
     }
@@ -71,14 +78,17 @@ fn sanitize_property_name(property_name: &str) -> String {
     property_name.replace('-', "_")
 }
 
-fn primitive_type_to_string(schema_type: Type, property_name: &str) -> String {
+fn primitive_type_to_string(
+    schema_type: Type,
+    property_name: &str,
+) -> Result<String, SchemaParserError> {
     // TODO: Add support for arrays
     match schema_type {
-        Type::String(_var) => format!("pub {}: String", sanitize_property_name(property_name)),
-        Type::Number(_var) => format!("pub {}: f64", sanitize_property_name(property_name)),
-        Type::Integer(_var) => format!("pub {}: int64", sanitize_property_name(property_name)) ,
-        Type::Boolean{} => format!("pub {}: bool", sanitize_property_name(property_name)),
-        _type => panic!("Unsupported schema type: Currently only supports string, number, integer and boolean types"),
+        Type::String(_var) => Ok(format!("pub {}: String", sanitize_property_name(property_name))),
+        Type::Number(_var) => Ok(format!("pub {}: f64", sanitize_property_name(property_name))),
+        Type::Integer(_var) => Ok(format!("pub {}: int64", sanitize_property_name(property_name)) ),
+        Type::Boolean{} => Ok(format!("pub {}: bool", sanitize_property_name(property_name))),
+        _type => Err(SchemaParserError::GenericError("Unsupported primitive type: Currently only supports string, number, integer and boolean types".to_string(), Some(property_name.into()))),
     }
 }
 
@@ -98,10 +108,7 @@ pub fn schema_parser_mapper(
                     convert_string_to_valid_type_name(struct_name.as_str(), "").as_str()
                 ))
             }
-            _primitive_type => Ok(primitive_type_to_string(
-                _primitive_type.clone(),
-                property_name,
-            )),
+            _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),
         },
         _other_schema_kind => {
             panic!("Unsupported schema kind {:?}", _other_schema_kind);
