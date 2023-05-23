@@ -49,7 +49,7 @@ fn parse_single_message_operation_type(
             }
         },
         ReferenceOr::Reference { reference } => {
-            let reference_path = parse_message_reference_path(&reference);
+            let reference_path = parse_message_reference_path(reference);
             if reference_path.is_none() {
                 panic!("\nWARNING: Invaid reference: {:?}", reference);
             }
@@ -81,11 +81,7 @@ fn extract_schemas_from_asyncapi(spec: &AsyncAPI) -> Vec<String> {
                     )
                     .collect(),
                 OperationMessageType::Single(message_ref_or_item) => {
-                    parse_single_message_operation_type(
-                        message_ref_or_item,
-                        root_msg_name.clone(),
-                        spec,
-                    )
+                    parse_single_message_operation_type(message_ref_or_item, root_msg_name, spec)
                 }
             }
         })

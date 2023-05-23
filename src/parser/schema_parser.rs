@@ -46,21 +46,16 @@ fn object_schema_to_string(
         .iter()
         .map(|(key, val)| match val {
             ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
-            ReferenceOr::Reference { reference: _ } => {
-                return Err(SchemaParserError::GenericError(
-                    "References are not supported yet".to_string(),
-                    property_name.to_string().into(),
-                ))
-            }
+            ReferenceOr::Reference { reference: _ } => Err(SchemaParserError::GenericError(
+                "References are not supported yet".to_string(),
+                property_name.to_string().into(),
+            )),
         })
         .collect();
 
     // check for errors and return early if any
-    match property_string_iterator.iter().find(|x| x.is_err()) {
-        Some(Err(e)) => {
-            return Err(e.clone());
-        }
-        _ => {}
+    if let Some(Err(e)) = property_string_iterator.iter().find(|x| x.is_err()) {
+        return Err(e.clone());
     }
 
     let property_string_iterator = property_string_iterator.into_iter().map(|x| x.unwrap());
