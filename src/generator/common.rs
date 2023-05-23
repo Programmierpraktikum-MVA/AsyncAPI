@@ -1,4 +1,6 @@
+use crate::utils;
 use std::{
+    fs,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
@@ -31,4 +33,14 @@ pub fn cargo_add(path: &Path, crate_name: &str, features: Option<&str>) {
         .arg(String::from("--manifest-path=") + path.to_str().unwrap() + "/Cargo.toml")
         .output()
         .expect("failed to add crate");
+}
+/// reads template from path renders it with context reference and writes to output file
+pub fn template_render_write<T: Into<gtmpl::Value>>(
+    template_path: &PathBuf,
+    context_ref: T,
+    output_path: &PathBuf,
+) {
+    let template = fs::read_to_string(template_path).expect("file could not be read");
+    let render = gtmpl::template(&template, context_ref).expect("Could not inject template");
+    utils::write_to_path_create_dir(&render, output_path).unwrap();
 }

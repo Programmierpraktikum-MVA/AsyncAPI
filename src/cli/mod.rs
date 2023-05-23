@@ -9,7 +9,7 @@ pub struct Cli {
     #[structopt(
         long = "spec",
         short = "s",
-        default_value = "./example/specs/userSignupSubscriber.yaml"
+        default_value = "./example/specs/basic.yaml"
     )]
     pub specification_file: String,
 
