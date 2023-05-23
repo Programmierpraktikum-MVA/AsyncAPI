@@ -27,3 +27,4 @@ channels:
       message:
         payload:
           type: string
+    
