@@ -171,9 +171,21 @@ pub struct AsyncAPI {
 }
 impl AsyncAPI {
     pub fn get_all_channels_operations(&self) -> Vec<(&String, &Operation)> {
-        self.get_publish_channels_operations()
-            .into_iter()
-            .chain(self.get_subscribe_channels_operations())
+        self.channels
+            .iter()
+            .flat_map(|(channel_name, channel)| {
+                vec![
+                    channel
+                        .publish
+                        .as_ref()
+                        .map(|operation| (channel_name, operation)),
+                    channel
+                        .subscribe
+                        .as_ref()
+                        .map(|operation| (channel_name, operation)),
+                ]
+            })
+            .flatten()
             .collect()
     }
     pub fn get_subscribe_channels_operations(&self) -> Vec<(&String, &Operation)> {

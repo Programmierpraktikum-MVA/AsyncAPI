@@ -91,22 +91,26 @@ fn extract_schemas_from_asyncapi(spec: &AsyncAPI) -> Vec<String> {
         .collect();
 }
 
-pub fn spec_to_pubsub_template_type(spec: AsyncAPI) -> Result<PubsubTemplate, io::Error> {
+pub fn spec_to_pubsub_template_type<'a>(
+    spec: &'a AsyncAPI,
+) -> Result<PubsubTemplate<'a>, io::Error> {
     let item = spec.servers.first().unwrap().1;
     let server = match item {
-        ReferenceOr::Item(it) => Some(it),
-        ReferenceOr::Reference { reference: _ } => None,
-    }
-    .unwrap()
-    .clone();
+        ReferenceOr::Item(it) => it,
+        ReferenceOr::Reference { reference: _ } => None.unwrap(),
+    };
 
-    let schemas: Vec<String> = extract_schemas_from_asyncapi(&spec);
+    let schemas: Vec<String> = extract_schemas_from_asyncapi(spec);
     let joined_schemas = schemas.join("\n");
     println!("\nJoined schemas: {:?}", joined_schemas);
 
-    Ok(PubsubTemplate {
-        server_url: server.url,
-        channel_name: spec.channels.first().unwrap().0.clone(),
-        schema: joined_schemas,
-    })
+    let publish_channels = spec.get_publish_channels_operations();
+    let subscribe_channels = spec.get_subscribe_channels_operations();
+
+    let pubsub_template: PubsubTemplate<'a> = PubsubTemplate {
+        server,
+        subscribe_channels,
+        publish_channels,
+    };
+    Ok(pubsub_template)
 }
