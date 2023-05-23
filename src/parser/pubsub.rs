@@ -44,7 +44,8 @@ fn parse_single_message_operation_type(
                 panic!("\nWARNING: Unsupported payload (Any): {:?}", val);
             }
             None => {
-                panic!("\nWARNING: No payload found for message: {:?}", message)
+                println!("\nWARNING: No payload found for message: {:?}", message);
+                vec![]
             }
         },
         ReferenceOr::Reference { reference } => {
