@@ -295,6 +295,6 @@ pub struct Operation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum OperationMessageType {
-    Map(IndexMap<String, ReferenceOr<Message>>),
     Single(ReferenceOr<Message>),
+    Map(IndexMap<String, ReferenceOr<Message>>),
 }

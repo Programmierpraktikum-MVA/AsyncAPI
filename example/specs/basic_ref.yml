@@ -1,0 +1,29 @@
+asyncapi: 2.6.0
+info:
+  title: My_API
+  version: 1.0.0
+servers:
+  development:
+    url: development.gigantic-server.com
+    description: Development server
+    protocol: amqp
+channels:
+  user/signedup:
+    subscribe:
+      message:
+        $ref: "#/components/messages/userSignUp"
+components:
+  schemas:
+    userCreate:
+      type: object
+      properties:
+        name: 
+          type: string
+  messages:
+    userSignUp:
+      summary: Action to sign a user up.
+      payload:
+        type: object
+        properties:
+          user:
+            $ref: "#/components/schemas/userCreate"
