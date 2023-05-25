@@ -5,16 +5,15 @@ mod parser;
 mod template_model;
 mod utils;
 
+use clap::Parser;
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
-use quicli::prelude::*;
 use std::{
     fs::{self, create_dir_all},
     path::Path,
 };
-use structopt::StructOpt;
 
-fn main() -> CliResult {
-    let args = cli::Cli::from_args();
+fn main() {
+    let args = cli::Args::parse();
 
     let specfile_path = Path::new(&args.specification_file);
     println!("specfile_path: {:?}", specfile_path);
@@ -49,6 +48,4 @@ fn main() -> CliResult {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
-
-    Ok(())
 }

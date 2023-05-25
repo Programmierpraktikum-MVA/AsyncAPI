@@ -1,26 +1,23 @@
-use structopt::StructOpt;
+use clap::Parser;
 
 //Add cool slogan for your app here, e.g.:
 /// specify the specification file and the output directory
-#[derive(Debug, StructOpt)]
-pub struct Cli {
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
     // Add a positional argument that the user has to supply:
-    /// The file to read
-    #[structopt(
-        long = "spec",
-        short = "s",
-        default_value = "./example/specs/userSignupSubscriber.yaml"
-    )]
+    /// The specification file to parse      
+    #[arg(short, long, default_value = "./example/specs/basic.yaml")]
     pub specification_file: String,
 
     /// The output directory
     /// If not specified, the output will be written to ./output/
     /// If the directory does not exist, it will be created
-    #[structopt(long = "output", short = "o", default_value = "./output/")]
+    #[arg(short, long, default_value = "./output/")]
     pub output_directory: String,
 
     /// The name of the project
     /// If not specified, the name will be taken from the specification file
-    #[structopt(long = "title", short = "t")]
+    #[arg(short, long)]
     pub project_title: Option<String>,
 }
