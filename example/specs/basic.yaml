@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 servers:
   production:
-    url: 0.0.0.0:4222
+    url: demo.nats.io
     protocol: nats
 channels:
   user/signedup:
@@ -27,3 +27,4 @@ channels:
       message:
         payload:
           type: string
+    
