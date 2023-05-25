@@ -1,0 +1,1 @@
+This directory includes code from Tinted available at https://gitlab.com/Tinted/asyncapi, licensed under the MIT License.
