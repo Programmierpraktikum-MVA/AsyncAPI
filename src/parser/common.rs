@@ -5,14 +5,14 @@ use regex::Regex;
 
 use crate::asyncapi_model::AsyncAPI;
 
-pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_yaml::Error> {
+pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_json::Error> {
     let string_content = fs::read_to_string(path).expect("file could not be read");
     // check if file is yaml or json
     let parsed = match path.extension() {
         Some(ext) => match ext.to_str() {
-            Some("yaml") => serde_yaml::from_str::<AsyncAPI>(&string_content).unwrap(),
-            Some("yml") => serde_yaml::from_str::<AsyncAPI>(&string_content).unwrap(),
-            Some("json") => serde_json::from_str::<AsyncAPI>(&string_content).unwrap(),
+            Some("yaml") => serde_yaml::from_str::<serde_json::Value>(&string_content).unwrap(),
+            Some("yml") => serde_yaml::from_str::<serde_json::Value>(&string_content).unwrap(),
+            Some("json") => serde_json::from_str::<serde_json::Value>(&string_content).unwrap(),
             _ => {
                 panic!("file has no extension");
             }
@@ -21,7 +21,10 @@ pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_yaml::Error> {
             panic!("file has no extension");
         }
     };
-    Ok(parsed)
+    let with_resolved_references =
+        crate::parser::resolve_refs::resolve_refs(parsed.clone(), parsed.clone());
+    let spec = serde_json::from_value::<AsyncAPI>(with_resolved_references)?;
+    Ok(spec)
 }
 
 fn capitalize_first_char(s: &str) -> String {

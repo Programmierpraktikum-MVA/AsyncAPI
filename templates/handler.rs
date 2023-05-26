@@ -2,6 +2,8 @@ use std::time;
 use async_nats::{Client, Message};
 use crate::publish_message;
 
+{{ .schema }}
+
  {{ range .subscribe_channels  }}
     pub fn handler_{{ (index . 1).operationId }}(message: Message) {
         println!("Received message {:#?}", message)
