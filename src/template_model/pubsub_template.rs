@@ -9,6 +9,7 @@ pub struct PubsubTemplate<'a> {
     pub server: &'a Server,
     pub subscribe_channels: Vec<(&'a String, &'a Operation)>,
     pub publish_channels: Vec<(&'a String, &'a Operation)>,
+    pub schema: String,
 }
 
 impl<'a> From<&PubsubTemplate<'a>> for gtmpl::Value {

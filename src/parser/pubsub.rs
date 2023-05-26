@@ -108,6 +108,7 @@ pub fn spec_to_pubsub_template_type<'a>(
         server,
         subscribe_channels,
         publish_channels,
+        schema: joined_schemas,
     };
     Ok(pubsub_template)
 }
