@@ -22,7 +22,7 @@ pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_json::Error> {
         }
     };
     let with_resolved_references =
-        crate::parser::resolve_refs::resolve_refs(parsed.clone(), parsed.clone());
+        crate::parser::resolve_refs::resolve_refs(parsed.clone(), parsed);
     let spec = serde_json::from_value::<AsyncAPI>(with_resolved_references)?;
     Ok(spec)
 }

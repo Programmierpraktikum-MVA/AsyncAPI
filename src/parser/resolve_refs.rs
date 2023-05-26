@@ -1,6 +1,6 @@
 pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
-    let parts = path.split("/").collect::<Vec<&str>>();
-    let mut current_json = json.clone();
+    let parts = path.split('/').collect::<Vec<&str>>();
+    let mut current_json = json;
     for part in parts {
         current_json = current_json[part].clone();
     }
@@ -16,9 +16,9 @@ pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> se
                     if let serde_json::Value::String(string_val) = value {
                         let correct_json = resolve_json_path(
                             root_json.clone(),
-                            &string_val.trim_start_matches("#/"),
+                            string_val.trim_start_matches("#/"),
                         );
-                        return resolve_refs(correct_json, root_json.clone());
+                        return resolve_refs(correct_json, root_json);
                     } else {
                         panic!("$ref value is not a string");
                     }
