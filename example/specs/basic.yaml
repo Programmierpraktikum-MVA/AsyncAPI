@@ -14,6 +14,9 @@ channels:
       message:
         payload:
           type: object
+          properties:
+            name:
+              type: string
     publish:
       operationId: userSingedUp
       summary: send welcome email to user

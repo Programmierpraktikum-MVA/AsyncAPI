@@ -10,6 +10,7 @@ servers:
 channels:
   user/signedup:
     subscribe:
+      operationId: onUserSignup
       message:
         $ref: "#/components/messages/userSignUp"
 components:
