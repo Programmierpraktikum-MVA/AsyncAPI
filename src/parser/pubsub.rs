@@ -37,7 +37,6 @@ fn parse_single_message_operation_type(
     match message_ref_or_item {
         ReferenceOr::Item(message) => match &message.payload {
             Some(Payload::Schema(schema)) => {
-                println!("\nmap schema: {:?}", schema);
                 transform_schema_to_string_vec(schema, &root_msg_name).unwrap()
             }
             Some(Payload::Any(val)) => {

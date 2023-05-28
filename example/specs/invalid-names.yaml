@@ -23,6 +23,23 @@ channels:
       message:
         payload:
           type: string
+
+  user/signedupd:
+    subscribe:
+      operationId: onUserSignup.l/.,;';.,\nfdsfsd
+      summary: User signup notification
+      message:
+        payload:
+          type: object
+          properties:
+            userSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUp:
+              type: string
+    publish:
+      operationId: userSing\edUpuserSing\edUpudserSing\edUpuserSfdsing\edfdsUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUp
+      summary: send welcome email to user
+      message:
+        payload:
+          type: string
   user/buy:
     subscribe:
       operationId: userBought

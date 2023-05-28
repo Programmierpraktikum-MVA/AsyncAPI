@@ -1,5 +1,6 @@
 use crate::parser::common::validate_identifier_string;
 use serde_json::json;
+use std::collections::HashSet;
 
 pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
     let parts = path.split('/').collect::<Vec<&str>>();
@@ -13,25 +14,26 @@ pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Val
 pub fn sanitize_operation_ids(
     json: serde_json::Value,
     root_json: serde_json::Value,
+    seen: &mut HashSet<String>,
 ) -> serde_json::Value {
     match json {
         serde_json::Value::Object(map) => {
             let mut new_map = serde_json::Map::new();
             for (key, value) in map {
-                println!("key : {} - {}", key, value);
                 if key == "operationId" {
-                    println!("found operationid : {} - {}", key, value);
-
                     if let serde_json::Value::String(string_val) = &value {
-                        let val = validate_identifier_string(string_val.as_str());
-                        let string = val.as_str();
-                        println!("new operationid : {}", json!(string));
-                        new_map.insert(key, json!(string));
+                        let sanitized_val = validate_identifier_string(string_val.as_str());
+                        if seen.contains(&sanitized_val) {
+                            panic!("Duplicate operationId found: {}", sanitized_val);
+                        } else {
+                            seen.insert(sanitized_val.clone());
+                            new_map.insert(key, json!(sanitized_val));
+                        }
                     } else {
-                        panic!("operationid value is not a string");
+                        panic!("operationId value is not a string");
                     }
                 } else {
-                    new_map.insert(key, sanitize_operation_ids(value, root_json.clone()));
+                    new_map.insert(key, sanitize_operation_ids(value, root_json.clone(), seen));
                 }
             }
             serde_json::Value::Object(new_map)
@@ -39,7 +41,7 @@ pub fn sanitize_operation_ids(
         serde_json::Value::Array(array) => {
             let new_array = array
                 .into_iter()
-                .map(|value| sanitize_operation_ids(value, root_json.clone()))
+                .map(|value| sanitize_operation_ids(value, root_json.clone(), seen))
                 .collect();
             serde_json::Value::Array(new_array)
         }
@@ -53,7 +55,6 @@ pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> se
             let mut new_map = serde_json::Map::new();
             for (key, value) in map {
                 if key == "$ref" {
-                    println!("found ref : {} - {}", key, value);
                     if let serde_json::Value::String(string_val) = value {
                         let correct_json = resolve_json_path(
                             root_json.clone(),

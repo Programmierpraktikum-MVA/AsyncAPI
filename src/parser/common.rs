@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{collections::HashSet, fs, path::Path};
 
 use inflector::Inflector;
 use proc_macro2::Ident;
@@ -27,7 +27,8 @@ pub fn parse_spec_to_model(
 
 fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
     let resolved_refs = resolve_refs(spec.clone(), spec);
-    let sanitized = sanitize_operation_ids(resolved_refs.clone(), resolved_refs);
+    let mut seen = HashSet::new();
+    let sanitized = sanitize_operation_ids(resolved_refs.clone(), resolved_refs, &mut seen);
     println!("Preprocessed spec: {}", sanitized);
     sanitized
 }
