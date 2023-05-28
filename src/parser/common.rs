@@ -1,30 +1,55 @@
 use std::{fs, path::Path};
 
 use inflector::Inflector;
+use proc_macro2::Ident;
 use regex::Regex;
 
 use crate::asyncapi_model::AsyncAPI;
 
-pub fn parse_spec_to_model(path: &Path) -> Result<AsyncAPI, serde_json::Error> {
-    let string_content = fs::read_to_string(path).expect("file could not be read");
+use super::{
+    preprocessor::{resolve_refs, sanitize_operation_ids},
+    validator::validate_asyncapi_schema,
+};
+
+pub fn parse_spec_to_model(
+    spec_path: &Path,
+    validator_schema_path: &Path,
+) -> Result<AsyncAPI, serde_json::Error> {
+    let spec = parse_string_to_serde_json_value(spec_path);
+    let validator = parse_string_to_serde_json_value(validator_schema_path);
+
+    validate_asyncapi_schema(&validator, &spec);
+
+    let preprocessed_spec = preprocess_schema(spec);
+    let spec = serde_json::from_value::<AsyncAPI>(preprocessed_spec)?;
+    Ok(spec)
+}
+
+fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
+    let resolved_refs = resolve_refs(spec.clone(), spec);
+    let sanitized = sanitize_operation_ids(resolved_refs.clone(), resolved_refs);
+    println!("Preprocessed spec: {}", sanitized);
+    sanitized
+}
+
+fn parse_string_to_serde_json_value(file_path: &Path) -> serde_json::Value {
+    let file_string = fs::read_to_string(file_path).expect("File could not be read");
     // check if file is yaml or json
-    let parsed = match path.extension() {
+    let parsed_value = match file_path.extension() {
         Some(ext) => match ext.to_str() {
-            Some("yaml") => serde_yaml::from_str::<serde_json::Value>(&string_content).unwrap(),
-            Some("yml") => serde_yaml::from_str::<serde_json::Value>(&string_content).unwrap(),
-            Some("json") => serde_json::from_str::<serde_json::Value>(&string_content).unwrap(),
+            Some("yaml") | Some("yml") => {
+                serde_yaml::from_str::<serde_json::Value>(&file_string).unwrap()
+            }
+            Some("json") => serde_json::from_str::<serde_json::Value>(&file_string).unwrap(),
             _ => {
-                panic!("file has no extension");
+                panic!("File has an unsupported extension");
             }
         },
         None => {
-            panic!("file has no extension");
+            panic!("File has no extension");
         }
     };
-    let with_resolved_references =
-        crate::parser::resolve_refs::resolve_refs(parsed.clone(), parsed);
-    let spec = serde_json::from_value::<AsyncAPI>(with_resolved_references)?;
-    Ok(spec)
+    parsed_value
 }
 
 fn capitalize_first_char(s: &str) -> String {
@@ -35,11 +60,16 @@ fn capitalize_first_char(s: &str) -> String {
     }
 }
 
-pub fn convert_string_to_valid_type_name(s: &str, suffix: &str) -> String {
-    let re = Regex::new(r"[^\w\s]").unwrap();
+pub fn validate_identifier_string(s: &str) -> String {
     // Remove special chars, capitalize words, remove spaces
-    let mut root_msg_name = re.replace_all(s, " ").to_title_case().replace(' ', "");
-    // Append Message to the end of the name
-    root_msg_name.push_str(suffix);
-    capitalize_first_char(root_msg_name.as_str())
+    let re = Regex::new(r"[^\w\s]").unwrap();
+    let sanitized_identifier = re.replace_all(s, " ").to_title_case().replace(' ', "");
+    let capitalized_sanitized_identifier = capitalize_first_char(sanitized_identifier.as_str());
+    // Create a new identifier
+    // This acts as validation for the message name, panics when the name is invalid
+    Ident::new(
+        &capitalized_sanitized_identifier,
+        proc_macro2::Span::call_site(),
+    );
+    capitalized_sanitized_identifier
 }

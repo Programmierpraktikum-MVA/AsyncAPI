@@ -1,3 +1,6 @@
+use crate::parser::common::validate_identifier_string;
+use serde_json::json;
+
 pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
     let parts = path.split('/').collect::<Vec<&str>>();
     let mut current_json = json;
@@ -7,12 +10,50 @@ pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Val
     current_json
 }
 
+pub fn sanitize_operation_ids(
+    json: serde_json::Value,
+    root_json: serde_json::Value,
+) -> serde_json::Value {
+    match json {
+        serde_json::Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+            for (key, value) in map {
+                println!("key : {} - {}", key, value);
+                if key == "operationId" {
+                    println!("found operationid : {} - {}", key, value);
+
+                    if let serde_json::Value::String(string_val) = &value {
+                        let val = validate_identifier_string(string_val.as_str());
+                        let string = val.as_str();
+                        println!("new operationid : {}", json!(string));
+                        new_map.insert(key, json!(string));
+                    } else {
+                        panic!("operationid value is not a string");
+                    }
+                } else {
+                    new_map.insert(key, sanitize_operation_ids(value, root_json.clone()));
+                }
+            }
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(array) => {
+            let new_array = array
+                .into_iter()
+                .map(|value| sanitize_operation_ids(value, root_json.clone()))
+                .collect();
+            serde_json::Value::Array(new_array)
+        }
+        _ => json,
+    }
+}
+
 pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> serde_json::Value {
     match json {
         serde_json::Value::Object(map) => {
             let mut new_map = serde_json::Map::new();
             for (key, value) in map {
                 if key == "$ref" {
+                    println!("found ref : {} - {}", key, value);
                     if let serde_json::Value::String(string_val) = value {
                         let correct_json = resolve_json_path(
                             root_json.clone(),

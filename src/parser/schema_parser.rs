@@ -5,7 +5,7 @@ use crate::asyncapi_model::{
 use core::fmt;
 use std::{collections::HashMap, format};
 
-use super::common::convert_string_to_valid_type_name;
+use super::common::validate_identifier_string;
 
 #[derive(Debug, Clone)]
 pub enum SchemaParserError {
@@ -38,7 +38,7 @@ fn object_schema_to_string(
 ) -> Result<String, SchemaParserError> {
     let before_string = format!(
         "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
-        convert_string_to_valid_type_name(property_name, "")
+        validate_identifier_string(property_name)
     );
     let after_string = String::from("\n}\n");
     let property_string_iterator: Vec<Result<String, SchemaParserError>> = schema
@@ -68,21 +68,16 @@ fn object_schema_to_string(
     Ok(property_name.to_string())
 }
 
-fn sanitize_property_name(property_name: &str) -> String {
-    // TODO: do proper sanitization so that the property name is a valid rust identifier
-    property_name.replace('-', "_")
-}
-
 fn primitive_type_to_string(
     schema_type: Type,
     property_name: &str,
 ) -> Result<String, SchemaParserError> {
     // TODO: Add support for arrays
     match schema_type {
-        Type::String(_var) => Ok(format!("pub {}: String", sanitize_property_name(property_name))),
-        Type::Number(_var) => Ok(format!("pub {}: f64", sanitize_property_name(property_name))),
-        Type::Integer(_var) => Ok(format!("pub {}: int64", sanitize_property_name(property_name)) ),
-        Type::Boolean{} => Ok(format!("pub {}: bool", sanitize_property_name(property_name))),
+        Type::String(_var) => Ok(format!("pub {}: String", validate_identifier_string(property_name))),
+        Type::Number(_var) => Ok(format!("pub {}: f64", validate_identifier_string(property_name))),
+        Type::Integer(_var) => Ok(format!("pub {}: int64", validate_identifier_string(property_name)) ),
+        Type::Boolean{} => Ok(format!("pub {}: bool", validate_identifier_string(property_name))),
         _type => Err(SchemaParserError::GenericError("Unsupported primitive type: Currently only supports string, number, integer and boolean types".to_string(), Some(property_name.into()))),
     }
 }
@@ -99,8 +94,8 @@ pub fn schema_parser_mapper(
                 let struct_name = object_schema_to_string(y, property_name, all_structs)?;
                 Ok(format!(
                     "pub {}: {}",
-                    property_name,
-                    convert_string_to_valid_type_name(struct_name.as_str(), "").as_str()
+                    struct_name,
+                    validate_identifier_string(struct_name.as_str()).as_str()
                 ))
             }
             _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),

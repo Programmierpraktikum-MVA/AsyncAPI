@@ -1,8 +1,7 @@
 mod common;
+mod preprocessor;
 mod pubsub;
-mod resolve_refs;
 mod schema_parser;
+mod validator;
 pub use common::parse_spec_to_model;
 pub use pubsub::spec_to_pubsub_template_type;
-pub use resolve_refs::resolve_refs;
-pub use schema_parser::schema_parser_mapper;

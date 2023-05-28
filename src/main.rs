@@ -17,8 +17,9 @@ fn main() {
     println!("specfile_path: {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
+    let validator_schema_path = Path::new("./validator_schema/2.1.0.json");
 
-    let spec = parser::parse_spec_to_model(specfile_path).unwrap();
+    let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
     println!("{:?}", spec);
 
     let title = match args.project_title {

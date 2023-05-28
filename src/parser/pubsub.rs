@@ -1,7 +1,7 @@
-use super::{schema_parser::SchemaParserError, schema_parser_mapper};
+use super::schema_parser::{schema_parser_mapper, SchemaParserError};
 use crate::{
     asyncapi_model::{AsyncAPI, OperationMessageType, Payload, ReferenceOr, Schema},
-    parser::common::convert_string_to_valid_type_name,
+    parser::common::validate_identifier_string,
     template_model::PubsubTemplate,
 };
 use std::{collections::HashMap, io};
@@ -64,7 +64,7 @@ fn extract_schemas_from_asyncapi(spec: &AsyncAPI) -> Vec<String> {
     return channels_ops
         .iter()
         .flat_map(|x| {
-            let root_msg_name = convert_string_to_valid_type_name(x.0, "");
+            let root_msg_name = validate_identifier_string(x.0);
             let channel = x.1;
             let operation_message = channel.message.as_ref().unwrap();
             match operation_message {
