@@ -7,7 +7,7 @@ use regex::Regex;
 use crate::asyncapi_model::AsyncAPI;
 
 use super::{
-    preprocessor::{resolve_refs, sanitize_operation_ids},
+    preprocessor::{resolve_refs, sanitize_operation_ids_and_check_duplicate},
     validator::validate_asyncapi_schema,
 };
 
@@ -28,7 +28,8 @@ pub fn parse_spec_to_model(
 fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
     let resolved_refs = resolve_refs(spec.clone(), spec);
     let mut seen = HashSet::new();
-    let sanitized = sanitize_operation_ids(resolved_refs.clone(), resolved_refs, &mut seen);
+    let sanitized =
+        sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen);
     println!("Preprocessed spec: {}", sanitized);
     sanitized
 }

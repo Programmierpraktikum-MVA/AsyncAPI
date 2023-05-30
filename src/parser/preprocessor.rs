@@ -11,10 +11,10 @@ pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Val
     current_json
 }
 
-pub fn sanitize_operation_ids(
+pub fn sanitize_operation_ids_and_check_duplicate(
     json: serde_json::Value,
     root_json: serde_json::Value,
-    seen: &mut HashSet<String>,
+    seen_operation_ids: &mut HashSet<String>,
 ) -> serde_json::Value {
     match json {
         serde_json::Value::Object(map) => {
@@ -23,17 +23,24 @@ pub fn sanitize_operation_ids(
                 if key == "operationId" {
                     if let serde_json::Value::String(string_val) = &value {
                         let sanitized_val = validate_identifier_string(string_val.as_str());
-                        if seen.contains(&sanitized_val) {
+                        if seen_operation_ids.contains(&sanitized_val) {
                             panic!("Duplicate operationId found: {}", sanitized_val);
                         } else {
-                            seen.insert(sanitized_val.clone());
+                            seen_operation_ids.insert(sanitized_val.clone());
                             new_map.insert(key, json!(sanitized_val));
                         }
                     } else {
                         panic!("operationId value is not a string");
                     }
                 } else {
-                    new_map.insert(key, sanitize_operation_ids(value, root_json.clone(), seen));
+                    new_map.insert(
+                        key,
+                        sanitize_operation_ids_and_check_duplicate(
+                            value,
+                            root_json.clone(),
+                            seen_operation_ids,
+                        ),
+                    );
                 }
             }
             serde_json::Value::Object(new_map)
@@ -41,7 +48,13 @@ pub fn sanitize_operation_ids(
         serde_json::Value::Array(array) => {
             let new_array = array
                 .into_iter()
-                .map(|value| sanitize_operation_ids(value, root_json.clone(), seen))
+                .map(|value| {
+                    sanitize_operation_ids_and_check_duplicate(
+                        value,
+                        root_json.clone(),
+                        seen_operation_ids,
+                    )
+                })
                 .collect();
             serde_json::Value::Array(new_array)
         }
