@@ -17,4 +17,6 @@ gtmpl_value = "0.5.1"
 regex = "1.8.1"
 Inflector = "0.11.4"
 clap = {version = "4.3.0", features = ["derive"]}
+jsonschema = "0.17.0"
+proc-macro2 = "1.0.59"
 

@@ -15,10 +15,10 @@ channels:
         payload:
           type: object
           properties:
-            name:
+            userSingnedUp:
               type: string
     publish:
-      operationId: userSingedUp
+      operationId: userSignedUp
       summary: send welcome email to user
       message:
         payload:

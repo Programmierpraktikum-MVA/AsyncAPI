@@ -1,3 +1,7 @@
+use crate::parser::common::validate_identifier_string;
+use serde_json::json;
+use std::collections::HashSet;
+
 pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
     let parts = path.split('/').collect::<Vec<&str>>();
     let mut current_json = json;
@@ -5,6 +9,57 @@ pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Val
         current_json = current_json[part].clone();
     }
     current_json
+}
+
+pub fn sanitize_operation_ids_and_check_duplicate(
+    json: serde_json::Value,
+    root_json: serde_json::Value,
+    seen_operation_ids: &mut HashSet<String>,
+) -> serde_json::Value {
+    match json {
+        serde_json::Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+            for (key, value) in map {
+                if key == "operationId" {
+                    if let serde_json::Value::String(string_val) = &value {
+                        let sanitized_val = validate_identifier_string(string_val.as_str());
+                        if seen_operation_ids.contains(&sanitized_val) {
+                            panic!("Duplicate operationId found: {}", sanitized_val);
+                        } else {
+                            seen_operation_ids.insert(sanitized_val.clone());
+                            new_map.insert(key, json!(sanitized_val));
+                        }
+                    } else {
+                        panic!("operationId value is not a string");
+                    }
+                } else {
+                    new_map.insert(
+                        key,
+                        sanitize_operation_ids_and_check_duplicate(
+                            value,
+                            root_json.clone(),
+                            seen_operation_ids,
+                        ),
+                    );
+                }
+            }
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(array) => {
+            let new_array = array
+                .into_iter()
+                .map(|value| {
+                    sanitize_operation_ids_and_check_duplicate(
+                        value,
+                        root_json.clone(),
+                        seen_operation_ids,
+                    )
+                })
+                .collect();
+            serde_json::Value::Array(new_array)
+        }
+        _ => json,
+    }
 }
 
 pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> serde_json::Value {
