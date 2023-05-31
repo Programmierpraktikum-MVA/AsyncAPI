@@ -9,16 +9,16 @@ servers:
 channels:
   user/signedup:
     subscribe:
-      operationId: onUserSignup.l;/.,;';.,\n'
+      operationId: onUserSignup
       summary: User signup notification
       message:
         payload:
           type: object
           properties:
-            userSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUp:
+            userSingnedUp:
               type: string
     publish:
-      operationId: userSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUpuserSing\edUp
+      operationId: userSignedUp
       summary: send welcome email to user
       message:
         payload:
