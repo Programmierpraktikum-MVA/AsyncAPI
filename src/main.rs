@@ -22,7 +22,7 @@ fn main() {
     let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
     println!("{:?}", spec);
 
-    let title = match args.project_title {
+    let title: String = match args.project_title {
         Some(t) => t,
         None => spec.info.title.clone(),
     };
