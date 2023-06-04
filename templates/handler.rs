@@ -1,6 +1,7 @@
 use std::time;
 use async_nats::{Client, Message};
 use crate::publish_message;
+use serde::{Deserialize, Serialize};
 
 {{ .schema }}
 
