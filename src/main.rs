@@ -5,7 +5,7 @@ mod parser;
 mod template_model;
 mod utils;
 
-use crate::generator::template_render_write;
+use crate::generator::{cargo_generate_rustdoc, template_render_write};
 use clap::Parser;
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
 use std::path::Path;
@@ -50,4 +50,9 @@ fn main() {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
+    println!("generating docs...");
+    println!(
+        "this may take a while, you can already use the generated project in the output directory"
+    );
+    cargo_generate_rustdoc(output_path);
 }

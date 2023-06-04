@@ -44,3 +44,11 @@ pub fn template_render_write<T: Into<gtmpl::Value>>(
     let render = gtmpl::template(&template, context_ref).expect("Could not inject template");
     utils::write_to_path_create_dir(&render, output_path).unwrap();
 }
+
+pub fn cargo_generate_rustdoc(path: &Path) {
+    Command::new("cargo")
+        .current_dir(path)
+        .arg("doc")
+        .output()
+        .expect("failed to generate rustdoc");
+}
