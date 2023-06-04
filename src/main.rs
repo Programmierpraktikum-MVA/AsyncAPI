@@ -43,6 +43,11 @@ fn main() {
         &async_config,
         &output_path.join("src/handler.rs"),
     );
+    template_render_write(
+        &template_path.join("Readme.md"),
+        &async_config,
+        &output_path.join("Readme.md"),
+    );
     // make output a compilable project
     cargo_init_project(output_path);
     cargo_fmt(&output_path.join("src/main.rs"));

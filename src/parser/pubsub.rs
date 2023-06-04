@@ -108,6 +108,8 @@ pub fn spec_to_pubsub_template_type<'a>(
         subscribe_channels,
         publish_channels,
         schema: joined_schemas,
+        title: &spec.info.title,
+        description: &spec.info.description,
     };
     Ok(pubsub_template)
 }

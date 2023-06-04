@@ -49,6 +49,7 @@ pub fn cargo_generate_rustdoc(path: &Path) {
     Command::new("cargo")
         .current_dir(path)
         .arg("doc")
+        .arg("--no-deps")
         .output()
         .expect("failed to generate rustdoc");
 }
