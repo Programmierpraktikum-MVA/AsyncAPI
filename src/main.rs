@@ -5,7 +5,7 @@ mod parser;
 mod template_model;
 mod utils;
 
-use crate::generator::template_render_write;
+use crate::generator::{cargo_generate_rustdoc, template_render_write};
 use clap::Parser;
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
 use std::path::Path;
@@ -22,16 +22,16 @@ fn main() {
     let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
     println!("{:?}", spec);
 
-    let title = match args.project_title {
+    let title: &str = match &args.project_title {
         Some(t) => t,
-        None => spec.info.title.clone(),
+        None => &spec.info.title,
     };
-    // output_path
     let output = args.output_directory;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("output_path: {:?}", output_path);
 
     let async_config = parser::spec_to_pubsub_template_type(&spec).unwrap();
+
     // render template and write
     template_render_write(
         &template_path.join("main.rs"),
@@ -43,6 +43,11 @@ fn main() {
         &async_config,
         &output_path.join("src/handler.rs"),
     );
+    template_render_write(
+        &template_path.join("Readme.md"),
+        &async_config,
+        &output_path.join("Readme.md"),
+    );
     // make output a compilable project
     cargo_init_project(output_path);
     cargo_fmt(&output_path.join("src/main.rs"));
@@ -50,4 +55,9 @@ fn main() {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
+    println!("generating docs...");
+    println!(
+        "this may take a while, you can already use the generated project in the output directory"
+    );
+    cargo_generate_rustdoc(output_path);
 }

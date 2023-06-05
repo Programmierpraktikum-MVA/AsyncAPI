@@ -6,6 +6,8 @@ use std::string::*;
 
 #[derive(Serialize, Debug)]
 pub struct PubsubTemplate<'a> {
+    pub title: &'a String,
+    pub description: &'a Option<String>,
     pub server: &'a Server,
     pub subscribe_channels: Vec<(&'a String, &'a Operation)>,
     pub publish_channels: Vec<(&'a String, &'a Operation)>,
