@@ -22,16 +22,16 @@ fn main() {
     let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
     println!("{:?}", spec);
 
-    let title: String = match args.project_title {
+    let title: &str = match &args.project_title {
         Some(t) => t,
-        None => spec.info.title.clone(),
+        None => &spec.info.title,
     };
-    // output_path
     let output = args.output_directory;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("output_path: {:?}", output_path);
 
     let async_config = parser::spec_to_pubsub_template_type(&spec).unwrap();
+
     // render template and write
     template_render_write(
         &template_path.join("main.rs"),
