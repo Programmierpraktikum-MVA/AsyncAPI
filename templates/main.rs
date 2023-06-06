@@ -25,17 +25,17 @@ async fn main() -> Result<(), async_nats::Error> {
     let client = async_nats::connect("{{ .server.url }}").await?;
 
     {{ range .subscribe_channels }}
-        let mut {{ (index . 1).operationId }} = client.subscribe("{{ index . 0  }}".into()).await?;
+        let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
     {{end}}
 
     test(&client, "foo").await;
 
     tokio::join!(
     {{ range .publish_channels }}
-        producer_{{ (index . 1).operationId }}(&client, "{{ index . 0  }}"),
+        producer_{{ (index . 1).unique_id }}(&client, "{{ index . 0  }}"),
     {{ end  }}
     {{ range .subscribe_channels  }}
-        listen_for_message(&mut  {{ (index . 1).operationId }}, handler_{{ (index . 1).operationId }}),
+        listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
     {{  end  }}
     );
 

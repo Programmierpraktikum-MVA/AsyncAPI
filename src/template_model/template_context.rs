@@ -1,21 +1,22 @@
-use crate::asyncapi_model::{Operation, Server};
+use crate::asyncapi_model::Server;
 use gtmpl::Value;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::string::*;
 
+use super::SimplifiedOperation;
+
 #[derive(Serialize, Debug)]
-pub struct PubsubTemplate<'a> {
+pub struct TemplateContext<'a> {
     pub title: &'a String,
     pub description: &'a Option<String>,
     pub server: &'a Server,
-    pub subscribe_channels: Vec<(&'a String, &'a Operation)>,
-    pub publish_channels: Vec<(&'a String, &'a Operation)>,
-    pub schema: String,
+    pub subscribe_channels: Vec<(&'a String, SimplifiedOperation)>,
+    pub publish_channels: Vec<(&'a String, SimplifiedOperation)>,
 }
 
-impl<'a> From<&PubsubTemplate<'a>> for gtmpl::Value {
-    fn from(value: &PubsubTemplate<'a>) -> Self {
+impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
+    fn from(value: &TemplateContext<'a>) -> Self {
         let json_value: serde_json::Value = serde_json::to_value(value).unwrap();
         serde_value_to_gtmpl_value(&json_value)
     }
