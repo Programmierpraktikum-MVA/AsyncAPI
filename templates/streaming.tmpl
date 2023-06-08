@@ -1,0 +1,114 @@
+use futures::StreamExt;
+use async_nats::jetstream::{self, Context, stream::{RetentionPolicy::*, StorageType::*, Republish, Source}};
+use async_nats::jetstream::consumer::{pull::{self, Config}, Consumer};
+use futures::stream::Take;
+
+
+///returns a new context for jetstream connection
+/// with predefined (in the future generated) url
+pub async fn connect_to_jetstream() -> Result<Context, async_nats::Error>{
+    let client = async_nats::connect("{{ .server.url }}".to_string()).await?;
+
+    let jetstream = jetstream::new(client);
+
+    return Ok(jetstream);
+}
+
+//this template contains all stream fields, if they trouble you, remove some, the removed ones just get a default value
+//Config also offers a lot of fields, for now: left for later(its a lot)
+///gets new stream or connects to existing one(predefined fields in struct later generated)
+///returns a new jetstream pull consumer for reading messages and jetstream context to return ownership
+pub async fn get_consumer(jetstream: Context) -> Result<(Consumer<Config>,Context), async_nats::Error>{
+
+    let stream = jetstream.get_or_create_stream(jetstream::stream::Config {
+        name: {{.stream_name}}.to_string(),
+        {{ if .max_bytes }}
+            max_bytes: {{ .max_bytes }}, //i64
+        {{end}} 
+        {{ if .max_messages }}
+            max_messages: {{ .max_messages }}, //i64
+        {{end}} 
+        {{ if .max_messages_per_subject }}
+            max_messages_per_subject: {{ .max_messages_per_subject }}, //i64
+        {{end}} 
+        {{ if .DiscardPolicy }}
+            discard: {{ .DiscardPolicy }}, //this is camel-case in nats, don't blame me
+        {{end}} 
+        {{ if .discard_new_per_subject }}
+            discard_new_per_subject: {{ .discard_new_per_subject }},
+        {{end}} 
+        {{ if .subjects }}
+            subjects: {{ .subjects }}, //is a string vector, default is streamname
+        {{end}}
+        {{ if .RetentionPolicy }}
+            retention: {{ .RetentionPolicy }}, //only works this way if RetentionPolicy::* is in scope(it is)
+        {{end}} 
+        {{ if .max_consumers }}
+            max_consumers: {{ .max_consumers }}, //i32
+        {{end}}
+        {{ if .max_age }}
+            max_age: {{ .max_age }}, //Duration in Nanoseconds
+        {{end}}
+        {{ if .max_message_size }}
+            max_message_size: {{ .max_message_size }}, //i32
+        {{end}}
+        {{ if .storage }}
+            storage: {{ .storage }}, //StorageType, needs to be in scope(currently it is)
+        {{end}}
+        {{ if num_replicas }}
+            num_replicas: {{ .num_replicas }}, //usize, max is 5
+        {{end}}
+        {{ if .no_ack }}
+            no_ack: {{ .no_ack }}, //bool
+        {{end}}
+        {{ if .duplicate_window }}
+            duplicate_window: {{ .duplicate_window }}, //i64
+        {{end}}
+        {{ if .template_owner }}
+            template_owner: {{ .template_owner }},
+        {{end}}
+        {{ if .sealed }}
+            sealed: {{ .sealed }}, //bool
+        {{end}}
+        {{ if .description }}
+            description: {{ .description }}, //Option<String>
+        {{end}}
+        {{ if .allow_rollup }}
+            allow_rollup: {{ .allow_rollup }},
+        {{end}}
+        {{ if .deny_delete }}
+            deny_delete: {{ .deny_delete }},
+        {{end}}
+        {{ if .deny_purge }}
+            deny_purge: {{ .deny_purge }},
+        {{end}}
+        {{ if .republish }}
+            republish: {{ .republish }},//Option<Republish>
+        {{end}}
+        {{ if .allow_direct }}
+            allow_direct: {{ .allow_direct }},
+        {{end}}
+        {{ if .mirror_direct }}
+            mirror_direct: {{ .mirror_direct }},
+        {{end}}
+        {{ if .mirror }}
+            mirror: {{ .mirror}},//Option<Source>
+        {{end}}
+        {{ if .sources }}
+            sources: {{ .sources }},//Option<Vec<Source>>
+        {{end}}
+        ..Default::default()
+    }).await?;
+
+    let consumer = stream.get_or_create_consumer("consumer", Config {
+        durable_name: Some("consumer".to_string()), //could be any consumer name, left for convenience
+        ..Default::default()
+    }).await?;
+    return Ok((consumer, jetstream));
+}
+
+///reads an amount of messages and returns them
+pub async fn get_messages(consumer: &Consumer<Config>, amount: usize)-> Result<Take<pull::Stream>, async_nats::Error>{
+    let messages = consumer.messages().await?.take(amount); //configure number of messages
+    Ok(messages)
+}
