@@ -31,7 +31,7 @@ async fn main() -> Result<(), async_nats::Error> {
         let mut {{ (index . 1).operationId }} = client.subscribe("{{ index . 0  }}".into()).await?;
     {{end}}
 
-    {{ end  }}}
+    {{ end  }}
 
     test(&client, "foo").await;
 
