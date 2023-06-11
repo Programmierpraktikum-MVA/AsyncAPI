@@ -31,7 +31,6 @@ pub struct OperationBinding {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mqtt5: Option<MQTT5OperationBinding>,
     /// Protocol-specific information for a NATS operation
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub nats: Option<NATSOperationBinding>,
     /// Protocol-specific information for a JMS operation
     #[serde(skip_serializing_if = "Option::is_none")]

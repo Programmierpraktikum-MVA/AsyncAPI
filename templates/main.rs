@@ -24,9 +24,14 @@ async fn publish_message(client: &Client, channel: &str, payload: &'static str) 
 async fn main() -> Result<(), async_nats::Error> {
     let client = async_nats::connect("{{ .server.url }}").await?;
 
-    {{ range .subscribe_channels }}
+    {{ range .subscribe_channels  }}
+    {{ if (index . 1).bindings }}
+        let mut {{ (index . 1).operationId }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).bindings.nats.queue }}".into()).await?;
+    {{ else }}
         let mut {{ (index . 1).operationId }} = client.subscribe("{{ index . 0  }}".into()).await?;
     {{end}}
+
+    {{ end  }}}
 
     test(&client, "foo").await;
 
