@@ -1,9 +1,9 @@
 use crate::asyncapi_model::{
-    schema::{ObjectType, SchemaKind, Type},
-    ReferenceOr, Schema,
+    schema::{ArrayType, IntegerFormat, NumberFormat, ObjectType, SchemaKind, StringFormat, Type},
+    ReferenceOr, Schema, VariantOrUnknownOrEmpty,
 };
 use core::fmt;
-use std::{collections::HashMap, format};
+use std::{collections::HashMap, format, panic};
 
 use super::common::validate_identifier_string;
 
@@ -38,7 +38,7 @@ fn object_schema_to_string(
 ) -> Result<String, SchemaParserError> {
     let before_string: String = format!(
         "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
-        validate_identifier_string(property_name)
+        validate_identifier_string(property_name, true)
     );
     let after_string = String::from("\n}\n");
     let property_string_iterator: Vec<Result<String, SchemaParserError>> = schema
@@ -68,18 +68,122 @@ fn object_schema_to_string(
     Ok(property_name.to_string())
 }
 
+fn format_to_rust_type(schema_type: &Type) -> String {
+    match schema_type {
+        //TODO: Add suggested validators for each string format
+        Type::String(_var) => {
+            match &_var.format {
+                VariantOrUnknownOrEmpty::Item(item) => {
+                    match item {
+                        StringFormat::Date => {
+                            // Date format is usually "yyyy-mm-dd"
+                            // You could validate it with a regex
+                            // if date_regex.is_match(_var) {
+                            //     return "String".to_string();
+                            // }
+                            // panic!("Invalid Date format for string");
+                            "String".to_string()
+                        },
+                        StringFormat::DateTime => {
+                            // DateTime format could be ISO 8601: "2023-01-16T23:28:56.782Z"
+                            // You could validate it using chrono's parse function
+                            // if let Ok(_dt) = chrono::DateTime::parse_from_rfc3339(_var) {
+                            //     return "String".to_string();
+                            // }
+                            // panic!("Invalid DateTime format for string");
+                            "String".to_string()
+                        },
+                        StringFormat::Password => {
+                            // Password might not need specific validation, just keep as String
+                            "String".to_string()
+                        },
+                        StringFormat::Byte => {
+                            // Bytes could be base64 encoded string
+                            // if base64::decode(_var).is_ok() {
+                            //     return "String".to_string();
+                            // }
+                            // panic!("Invalid Byte format for string");
+                            "String".to_string()
+                        },
+                        StringFormat::Binary => {
+                            // Binary data might be just represented as a String
+                            "String".to_string()
+                        },
+                    }
+                },
+                VariantOrUnknownOrEmpty::Unknown(_unknown) => "String".to_string(),
+                VariantOrUnknownOrEmpty::Empty => "String".to_string(),
+            }
+        },
+        Type::Number(_var) => {
+            match &_var.format {
+                VariantOrUnknownOrEmpty::Item(item) => {
+                    match item {
+                        NumberFormat::Float => "f32".to_string(),
+                        NumberFormat::Double => "f64".to_string(),
+                    }
+                }
+                VariantOrUnknownOrEmpty::Unknown(_unknown) => "f64".to_string(),
+                VariantOrUnknownOrEmpty::Empty => "f64".to_string(),
+            }
+        },
+        Type::Integer(_var) => {
+            match &_var.format {
+                VariantOrUnknownOrEmpty::Item(item) => {
+                    match item {
+                        IntegerFormat::Int32 => "i32".to_string(),
+                        IntegerFormat::Int64 => "i64".to_string(),
+                    }
+                }
+                VariantOrUnknownOrEmpty::Unknown(_unknown) => "i64".to_string(),
+                VariantOrUnknownOrEmpty::Empty => "i64".to_string(),
+            }
+        },
+        Type::Boolean{} => "bool".to_string(),
+        _type => panic!("Unsupported primitive type: Currently only supports string, number, integer and boolean types"),
+    }
+}
+
 fn primitive_type_to_string(
     schema_type: Type,
     property_name: &str,
 ) -> Result<String, SchemaParserError> {
-    // TODO: Add support for arrays
-    match schema_type {
-        Type::String(_var) => Ok(format!("pub {}: String", validate_identifier_string(property_name))),
-        Type::Number(_var) => Ok(format!("pub {}: f64", validate_identifier_string(property_name))),
-        Type::Integer(_var) => Ok(format!("pub {}: int64", validate_identifier_string(property_name)) ),
-        Type::Boolean{} => Ok(format!("pub {}: bool", validate_identifier_string(property_name))),
-        _type => Err(SchemaParserError::GenericError("Unsupported primitive type: Currently only supports string, number, integer and boolean types".to_string(), Some(property_name.into()))),
-    }
+    Ok(format!(
+        "pub {}: {}",
+        validate_identifier_string(property_name, false),
+        format_to_rust_type(&schema_type)
+    ))
+}
+
+fn array_type_to_string(
+    array_type: &ArrayType,
+    property_name: &str,
+) -> Result<String, SchemaParserError> {
+    let item_type = match &array_type.items {
+        Some(type_box) => match type_box {
+            ReferenceOr::Item(schema) => match &schema.schema_kind {
+                SchemaKind::Type(schema_type) => format_to_rust_type(schema_type),
+                _ => panic!("Unsupported schema kind"),
+            },
+            ReferenceOr::Reference { reference: _ } => {
+                return Err(SchemaParserError::GenericError(
+                    "References are not supported yet".to_string(),
+                    property_name.to_string().into(),
+                ))
+            }
+        },
+        None => {
+            return Err(SchemaParserError::GenericError(
+                "Array type without item type".into(),
+                None,
+            ))
+        }
+    };
+    Ok(format!(
+        "pub {}: Vec<{}>",
+        validate_identifier_string(property_name, false),
+        item_type
+    ))
 }
 
 pub fn schema_parser_mapper(
@@ -95,9 +199,10 @@ pub fn schema_parser_mapper(
                 Ok(format!(
                     "pub {}: {}",
                     struct_name,
-                    validate_identifier_string(struct_name.as_str()).as_str()
+                    validate_identifier_string(struct_name.as_str(), false).as_str()
                 ))
             }
+            Type::Array(array_type) => array_type_to_string(array_type, property_name),
             _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),
         },
         _other_schema_kind => {

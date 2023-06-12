@@ -34,12 +34,12 @@ fn main() {
 
     // render template and write
     template_render_write(
-        &template_path.join("main.rs"),
+        &template_path.join("main.rstmpl"),
         &async_config,
         &output_path.join("src/main.rs"),
     );
     template_render_write(
-        &template_path.join("handler.rs"),
+        &template_path.join("handler.rstmpl"),
         &async_config,
         &output_path.join("src/handler.rs"),
     );

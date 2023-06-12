@@ -1,7 +1,5 @@
 use std::{collections::HashSet, fs, path::Path};
 
-use inflector::Inflector;
-use proc_macro2::Ident;
 use regex::Regex;
 
 use crate::asyncapi_model::AsyncAPI;
@@ -54,24 +52,27 @@ fn parse_string_to_serde_json_value(file_path: &Path) -> serde_json::Value {
     parsed_value
 }
 
-fn capitalize_first_char(s: &str) -> String {
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-    }
-}
-
-pub fn validate_identifier_string(s: &str) -> String {
-    // Remove special chars, capitalize words, remove spaces
+pub fn validate_identifier_string(s: &str, camel_case: bool) -> String {
     let re = Regex::new(r"[^\w\s]").unwrap();
-    let sanitized_identifier = re.replace_all(s, " ").to_title_case().replace(' ', "");
-    let capitalized_sanitized_identifier = capitalize_first_char(sanitized_identifier.as_str());
-    // Create a new identifier
-    // This acts as validation for the message name, panics when the name is invalid
-    Ident::new(
-        &capitalized_sanitized_identifier,
-        proc_macro2::Span::call_site(),
-    );
-    capitalized_sanitized_identifier
+    let mut sanitized = re.replace_all(s, "").to_string();
+
+    // split into words and process each word
+    let words: Vec<&str> = sanitized.split_whitespace().collect();
+
+    if camel_case {
+        sanitized = words
+            .into_iter()
+            .map(|word| {
+                let mut chars = word.chars();
+                match chars.next() {
+                    None => String::new(),
+                    Some(f) => f.to_uppercase().chain(chars).collect(),
+                }
+            })
+            .collect();
+    } else {
+        sanitized = words.join("_").to_lowercase();
+    }
+
+    sanitized
 }
