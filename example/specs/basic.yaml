@@ -22,13 +22,24 @@ channels:
       operationId: userSignedUp
       summary: send welcome email to user
       message:
-        payload:
-          type: string
+         payload:
+          type: object
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+            age: 
+              type: number
   user/buy:
     subscribe:
-      operationId: userBought
       summary: User bought something
       message:
         payload:
-          type: string
+          type: object
+          properties:
+            item_id:
+              type: string
+            amount: 
+              type: number
     

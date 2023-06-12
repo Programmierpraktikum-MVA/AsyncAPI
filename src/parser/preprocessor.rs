@@ -1,6 +1,6 @@
 use crate::parser::common::validate_identifier_string;
 use serde_json::json;
-use std::collections::HashSet;
+use std::{collections::HashSet, panic};
 
 pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
     let parts = path.split('/').collect::<Vec<&str>>();

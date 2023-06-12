@@ -48,6 +48,8 @@ fn main() {
         &async_config,
         &output_path.join("Readme.md"),
     );
+    println!("file generation finished, adding dependencies...");
+
     // make output a compilable project
     cargo_init_project(output_path);
     cargo_fmt(&output_path.join("src/main.rs"));
@@ -56,8 +58,5 @@ fn main() {
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
     println!("generating docs...");
-    println!(
-        "this may take a while, you can already use the generated project in the output directory"
-    );
     cargo_generate_rustdoc(output_path);
 }

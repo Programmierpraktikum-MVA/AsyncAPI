@@ -36,7 +36,7 @@ fn object_schema_to_string(
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
 ) -> Result<String, SchemaParserError> {
-    let before_string = format!(
+    let before_string: String = format!(
         "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
         validate_identifier_string(property_name)
     );
