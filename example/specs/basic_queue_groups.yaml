@@ -1,0 +1,58 @@
+asyncapi: 2.1.0
+info:
+  title: My_API
+  version: 1.0.0
+servers:
+  production:
+    url: demo.nats.io
+    protocol: nats
+channels:
+  user/signedup:
+    subscribe:
+      operationId: onUserSignup
+      summary: User signup notification
+      message:
+        payload:
+          type: object
+          properties:
+            userSingnedUp:
+              type: string
+            userID: 
+              type: number
+            timestamp: 
+              type: string
+    publish:
+      bindings:
+        nats:
+          queue: MyQueue
+      operationId: userSignedUp
+      summary: send welcome email to user
+      message:
+        payload: 
+          type: object
+          properties:
+            userSingnedUp:
+              type: string
+            userID: 
+              type: number
+            timestamp: 
+              type: string
+  user/buy:
+    subscribe:
+      bindings:
+        nats:
+          queue: MyQueue
+      operationId: userBought
+      summary: User bought something
+      message:
+        payload:
+          type: string
+    publish:
+      bindings:
+        nats:
+          queue: MyQueue
+      operationId: onUserBought
+      summary: send email to user
+      message:
+        payload:
+          type: string  

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 
 
- {{ range .subscribe_channels  }}
+ {{ range .publish_channels  }}
     {{ range (index . 1).messages }}
         {{ if .payload }}
          // payload
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
     }
 {{ end  }}
 
-{{ range .publish_channels }}
+{{ range .subscribe_channels }}
     /// publish message to {{ (index . 1).unique_id }}
     ///  messages: 
     /// {{ range (index . 1).messages }}
