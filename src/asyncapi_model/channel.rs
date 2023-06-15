@@ -109,11 +109,9 @@ pub struct Channel {
     pub servers: Vec<String>,
     /// A definition of the SUBSCRIBE operation, which defines the messages produced
     /// by the application and sent to the channel.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub subscribe: Option<Operation>,
     /// A definition of the PUBLISH operation, which defines the messages consumed
     /// by the application from the channel.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub publish: Option<Operation>,
     /// A map of the parameters included in the channel name. It SHOULD be present only
     /// when using channels with expressions (as defined by
@@ -273,7 +271,6 @@ pub struct Operation {
     pub external_docs: Option<ExternalDocumentation>,
     /// A map where the keys describe the name of the protocol and the
     /// values describe protocol-specific definitions for the operation.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub bindings: Option<ReferenceOr<OperationBinding>>,
     /// A list of traits to apply to the operation object.
     /// Traits MUST be merged into the operation object using the
