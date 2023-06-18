@@ -13,7 +13,7 @@ use std::path::Path;
 fn main() {
     let args = cli::Args::parse();
 
-    let specfile_path = Path::new(&args.specification_file);
+    let specfile_path = Path::new(&args.specification);
     println!("specfile_path: {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
@@ -22,11 +22,11 @@ fn main() {
     let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
     println!("{:?}", spec);
 
-    let title: &str = match &args.project_title {
+    let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
     };
-    let output = args.output_directory;
+    let output = args.output;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("output_path: {:?}", output_path);
 
@@ -57,6 +57,9 @@ fn main() {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
-    println!("generating docs...");
-    cargo_generate_rustdoc(output_path);
+
+    if args.doc {
+        println!("generating docs...");
+        cargo_generate_rustdoc(output_path);
+    }
 }
