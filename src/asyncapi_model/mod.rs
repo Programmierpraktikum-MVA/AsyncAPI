@@ -21,7 +21,7 @@ mod tag;
 mod variant_or;
 
 pub use api::AsyncAPI;
-pub use channel::{Channel, Operation, OperationMessageType};
+pub use channel::{Channel, OneOfMessage, Operation, OperationMessageType};
 pub use channel_binding::ChannelBinding;
 pub use components::Components;
 pub use correlation_id::CorrelationId;

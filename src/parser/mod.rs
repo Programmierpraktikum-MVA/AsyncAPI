@@ -5,4 +5,4 @@ mod schema_parser;
 mod validator;
 pub use common::{parse_spec_to_model, validate_identifier_string};
 pub use parse_template_context::spec_to_pubsub_template_type;
-pub use schema_parser::schema_parser_mapper;
+pub use schema_parser::{build_multi_message_enum, schema_parser_mapper};

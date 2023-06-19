@@ -2,7 +2,7 @@ use std::{collections::HashSet, fs, path::Path};
 
 use regex::Regex;
 
-use crate::asyncapi_model::AsyncAPI;
+use crate::{asyncapi_model::AsyncAPI, parser::preprocessor::fill_message_and_payload_names};
 
 use super::{
     preprocessor::{resolve_refs, sanitize_operation_ids_and_check_duplicate},
@@ -24,12 +24,11 @@ pub fn parse_spec_to_model(
 }
 
 fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
-    let resolved_refs = resolve_refs(spec.clone(), spec);
+    let with_message_names = fill_message_and_payload_names(spec.clone(), spec, false, false, None);
+    let resolved_refs = resolve_refs(with_message_names.clone(), with_message_names);
     let mut seen = HashSet::new();
-    let sanitized =
-        sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen);
-    println!("Preprocessed spec: {}", sanitized);
-    sanitized
+    // println!("Preprocessed spec: {}", sanitized);
+    sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen)
 }
 
 fn parse_string_to_serde_json_value(file_path: &Path) -> serde_json::Value {
@@ -73,6 +72,5 @@ pub fn validate_identifier_string(s: &str, camel_case: bool) -> String {
     } else {
         sanitized = words.join("_").to_lowercase();
     }
-
     sanitized
 }

@@ -1,4 +1,5 @@
 mod handler;
+mod model;
 use async_nats::{Client, Message, Subscriber};
 
 use futures::StreamExt;
@@ -13,9 +14,10 @@ async fn listen_for_message(sub: &mut Subscriber, handler: impl Fn(Message)) {
         println!("Message received by Subscriber: {:?}", sub); 
     }
 }
-async fn publish_message(client: &Client, channel: &str, payload: &'static str) {
+async fn publish_message(client: &Client, channel: &str, payload: &str) {
+    let owned_payload = payload.to_owned().into(); // Convert to Bytes
     client
-        .publish(channel.into(), payload.into())
+        .publish(channel.to_string(), owned_payload)
         .await
         .unwrap();
     println!("sent");

@@ -4,7 +4,13 @@ use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::string::*;
 
-use super::SimplifiedOperation;
+use super::{MultiStructEnum, SimplifiedMessage, SimplifiedOperation};
+
+#[derive(Serialize, Debug)]
+pub struct Model {
+    pub messages: Vec<SimplifiedMessage>,
+    pub enums: Vec<MultiStructEnum>,
+}
 
 #[derive(Serialize, Debug)]
 pub struct TemplateContext<'a> {
@@ -13,6 +19,7 @@ pub struct TemplateContext<'a> {
     pub server: &'a Server,
     pub subscribe_channels: Vec<(&'a String, SimplifiedOperation)>,
     pub publish_channels: Vec<(&'a String, SimplifiedOperation)>,
+    pub model: Model,
 }
 
 impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {

@@ -1,6 +1,5 @@
 mod common;
-pub use common::cargo_add;
-pub use common::cargo_fmt;
-pub use common::cargo_generate_rustdoc;
-pub use common::cargo_init_project;
-pub use common::template_render_write;
+pub use common::{
+    cargo_add, cargo_fix, cargo_fmt, cargo_generate_rustdoc, cargo_init_project,
+    template_render_write,
+};

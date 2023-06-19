@@ -247,7 +247,7 @@ pub struct Channel {
 #[serde(rename_all = "camelCase")]
 pub struct Operation {
     /// Unique string used to identify the operation.
-    /// The id MUST be unique among all operations described in the API.
+    /// The id MUST be unique among all operations described in th  e API.
     /// The operationId value is **case-sensitive**.
     /// Tools and libraries MAY use the operationId to uniquely identify an
     /// operation, therefore, it is RECOMMENDED to follow common programming
@@ -290,8 +290,15 @@ pub struct Operation {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct OneOfMessage {
+    #[serde(rename = "oneOf")]
+    pub one_of: Vec<ReferenceOr<Message>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum OperationMessageType {
+    OneOf(OneOfMessage),
     Single(ReferenceOr<Message>),
     Map(IndexMap<String, ReferenceOr<Message>>),
 }

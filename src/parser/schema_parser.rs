@@ -1,6 +1,11 @@
-use crate::asyncapi_model::{
-    schema::{ArrayType, IntegerFormat, NumberFormat, ObjectType, SchemaKind, StringFormat, Type},
-    ReferenceOr, Schema, VariantOrUnknownOrEmpty,
+use crate::{
+    asyncapi_model::{
+        schema::{
+            ArrayType, IntegerFormat, NumberFormat, ObjectType, SchemaKind, StringFormat, Type,
+        },
+        ReferenceOr, Schema, VariantOrUnknownOrEmpty,
+    },
+    template_model::{MultiStructEnum, SimplifiedMessage},
 };
 use core::fmt;
 use std::{collections::HashMap, format, panic};
@@ -186,6 +191,59 @@ fn array_type_to_string(
     ))
 }
 
+pub fn build_multi_message_enum(
+    multiple_messages: &Vec<SimplifiedMessage>,
+    unique_id: &str,
+) -> Option<MultiStructEnum> {
+    if multiple_messages.len() == 1 {
+        None
+    } else {
+        let mut string_builder: String = format!(
+            "#[derive(Serialize, Deserialize, Debug)]\n#[serde(untagged)]\npub enum {} {{\n",
+            validate_identifier_string(unique_id, true)
+        );
+        for message in multiple_messages {
+            let message_name = validate_identifier_string(&message.unique_id, true);
+            let message_string = format!("{}({}),\n", message_name, message_name);
+            string_builder.push_str(&message_string);
+        }
+        string_builder.push_str("\n}\n");
+        Some(MultiStructEnum {
+            unique_id: unique_id.to_string(),
+            messages: multiple_messages.to_vec(),
+            struct_definition: string_builder,
+        })
+    }
+}
+
+pub fn build_multi_payload_enum(struct_names: &Vec<String>, enum_name: &str) -> Option<String> {
+    if struct_names.len() == 1 {
+        None
+    } else {
+        let name = validate_identifier_string(enum_name, true);
+        let mut string_builder: String = format!(
+            "#[derive(Serialize, Deserialize, Debug)]\n#[serde(untagged)]\npub enum {} {{\n",
+            name
+        );
+        for message in struct_names {
+            let message_name = validate_identifier_string(message, true);
+            let message_string = format!("{}({}),\n", message_name, message_name);
+            string_builder.push_str(&message_string);
+        }
+        string_builder.push_str("\n}\n");
+        Some(string_builder)
+    }
+}
+
+// this is a message with just the payload, it should be able to be extended with headers and other props
+pub fn build_multi_payload_message(message_name: &str, payload_name: &str) -> String {
+    format!(
+        "#[derive(Serialize, Deserialize, Debug)]\npub struct {} {{\npayload: {},\n}}\n",
+        validate_identifier_string(message_name, true),
+        validate_identifier_string(payload_name, true),
+    )
+}
+
 pub fn schema_parser_mapper(
     schema: &Schema,
     property_name: &str,
@@ -205,8 +263,42 @@ pub fn schema_parser_mapper(
             Type::Array(array_type) => array_type_to_string(array_type, property_name),
             _primitive_type => primitive_type_to_string(_primitive_type.clone(), property_name),
         },
-        _other_schema_kind => {
-            panic!("Unsupported schema kind {:?}", _other_schema_kind);
+        SchemaKind::OneOf { one_of }
+        | SchemaKind::AnyOf { any_of: one_of }
+        | SchemaKind::AllOf { all_of: one_of } => {
+            let mut combined_string = String::new();
+            let mut struct_names: Vec<String> = vec![];
+            for (index, schema) in one_of.iter().enumerate() {
+                match schema {
+                    ReferenceOr::Item(item_schema) => {
+                        let payload_variant_name = format!("{}Payload{}", property_name, index + 1);
+                        let result = schema_parser_mapper(
+                            item_schema,
+                            payload_variant_name.as_str(),
+                            all_structs,
+                        )?;
+                        combined_string.push_str(&result);
+                        combined_string.push('\n');
+                        struct_names.push(payload_variant_name);
+                    }
+                    ReferenceOr::Reference { reference: _ } => {
+                        panic!("Refs should be resolved by now");
+                    }
+                }
+            }
+            let payload_enum_name = format!("{}PayloadEnum", property_name);
+
+            let payload_enum = build_multi_payload_enum(&struct_names, payload_enum_name.as_str());
+            if let Some(payload_enum) = payload_enum {
+                combined_string.push_str(payload_enum.as_str());
+                all_structs.insert(payload_enum_name.clone(), payload_enum);
+                let final_message = build_multi_payload_message(property_name, &payload_enum_name);
+                all_structs.insert(property_name.to_string(), final_message);
+            }
+            Ok(combined_string)
+        }
+        SchemaKind::Any(_s) => {
+            panic!("Unsupported schema kind {:?}", _s);
         }
     }
 }
