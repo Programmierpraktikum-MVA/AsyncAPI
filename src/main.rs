@@ -14,13 +14,13 @@ fn main() {
     let args = cli::Args::parse();
 
     let specfile_path = Path::new(&args.specification);
-    println!("specfile_path: {:?}", specfile_path);
+    println!("📄 Using specification file {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
     let validator_schema_path = Path::new("./validator_schema/2.1.0.json");
 
     let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
-    println!("{:?}", spec);
+    // println!("{:?}", spec);
 
     let title: &str = match &args.title {
         Some(t) => t,
@@ -28,7 +28,7 @@ fn main() {
     };
     let output = args.output;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
-    println!("output_path: {:?}", output_path);
+    println!("📂 Output path: {:?}", output_path);
 
     let async_config = parser::spec_to_pubsub_template_type(&spec).unwrap();
 
@@ -48,7 +48,7 @@ fn main() {
         &async_config,
         &output_path.join("Readme.md"),
     );
-    println!("file generation finished, adding dependencies...");
+    println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project
     cargo_init_project(output_path);
@@ -59,7 +59,7 @@ fn main() {
     cargo_add(output_path, "serde", None);
 
     if args.doc {
-        println!("generating docs...");
+        println!("📚 Generating docs...");
         cargo_generate_rustdoc(output_path);
     }
 }

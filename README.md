@@ -14,8 +14,6 @@ Crustagen is a Rust code generator that takes AsyncAPI specifications as input a
   - [Contribute](#contribute)
   - [License](#license)
 
-
-
 ## Requirements
 
 - Rust 1.70 or later.
@@ -24,36 +22,37 @@ Crustagen is a Rust code generator that takes AsyncAPI specifications as input a
 
 ## Installation
 
+Clone and build the Crustagen project:
+
 ```sh
 git clone https://github.com/yourusername/crustagen.git
 cd crustagen
-cargo build --release
+just install # Alternatively, you can use 'cargo build --release'
 ```
 
 ## Usage
 
-To generate Rust code from an AsyncAPI specification, use the `-s` flag to specify the path to the spec file and the `-o` flag to specify the output directory.
-
-Example:
+To generate Rust code from an AsyncAPI specification, use the following `just` command:
 
 ```sh
-cargo run -- -s ./example/specs/basic.yaml -o ./output
+just run-generator specfile_path="./example/specs/basic.yaml" output="./output" # Alternatively, you can use 'cargo run -- -s ./example/specs/basic.yaml -o ./output'
 ```
 
-This will generate a Rust project in the specified output directory. 
+This will generate a Rust project in the specified output directory.
 
-To run the server, navigate to the output directory (replace `{project-id}` with the actual project directory name, the title of the spec) and use `cargo run`:
+To run the server, navigate to the output directory (replace `{project-id}` with the actual project directory name, the title of the spec) and use the `just` command:
 
 ```sh
-cd output/{project-id}
-cargo run
+just start-service service_name={project-id} # Alternatively, you can use 'cd output/{project-id} && cargo run'
 ```
 
 To view the auto-generated documentation, use the following command:
 
 ```sh
-cargo doc --no-deps --open
+just generate-service-docs service_name={project-id} # Alternatively, you can use 'cd output/{project-id} && cargo doc --open'
 ```
+
+Remember to replace `{project-id}` with the actual project directory name.
 
 ## Contribute
 
@@ -61,4 +60,4 @@ Contributions are always welcome! Please read the [contribution guidelines](CONT
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License. See the `LICENSE` file for more information.

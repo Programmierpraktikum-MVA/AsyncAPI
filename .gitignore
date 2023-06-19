@@ -4,3 +4,4 @@
 .vscode/settings.json
 /test_output
 Cargo.lock
+.last_output_directory

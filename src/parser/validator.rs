@@ -10,6 +10,6 @@ pub fn validate_asyncapi_schema(validator: &serde_json::Value, instance: &serde_
         }
         panic!("Validation failed");
     } else {
-        println!("Validation succeeded");
+        println!("✅ Validation succeeded!");
     }
 }
