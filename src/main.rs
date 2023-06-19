@@ -5,6 +5,7 @@ mod parser;
 mod template_context;
 mod utils;
 
+
 use crate::{
     asyncapi_model::AsyncAPI,
     generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
@@ -13,9 +14,22 @@ use crate::{
 
 use clap::Parser;
 use generator::{cargo_fmt, cargo_init_project};
+
+// for the logger!
+use log::{debug, error, info, log_enabled, Level};
+
+
+use env_logger::Builder;
+
+use log::LevelFilter;
+
 use std::path::Path;
 
 fn main() {
+    Builder::new().filter(None, LevelFilter::Info).init();
+
+    info!("JOOOOOO STARTING UP!!!!!!!!!!!");
+
     let args = cli::Args::parse();
 
     let specfile_path = Path::new(&args.specification);
