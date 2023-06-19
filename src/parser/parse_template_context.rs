@@ -18,14 +18,13 @@ fn extract_model_from_channels(
         for message in operation.messages {
             messages.insert(message.unique_id.clone(), message);
         }
-        if let Some(multiple_messages_enum) = operation.multiple_messages_enum.clone() {
+        if let Some(multiple_messages_enum) = operation.multiple_messages_enum {
             enums.insert(
                 multiple_messages_enum.unique_id.clone(),
                 multiple_messages_enum,
             );
         }
     }
-
     Model {
         messages: messages.into_values().collect(),
         enums: enums.into_values().collect(),
@@ -47,17 +46,15 @@ pub fn spec_to_pubsub_template_type<'a>(
 
     let publish_channels = spec.get_publish_channels_operations();
     let subscribe_channels = spec.get_subscribe_channels_operations();
-    let models: Model =
+    let model: Model =
         extract_model_from_channels(publish_channels.clone(), subscribe_channels.clone());
-
-    // println!("models: {:?}", models);
     let pubsub_template: TemplateContext<'a> = TemplateContext {
         server,
         subscribe_channels,
         publish_channels,
         title: &spec.info.title,
         description: &spec.info.description,
-        model: models,
+        model,
     };
     Ok(pubsub_template)
 }

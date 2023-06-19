@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
     
-
+// All models from the specification are defined here
 {{ range .model.messages }}
     {{ if .payload }}
         {{ .payload.struct_definition }}

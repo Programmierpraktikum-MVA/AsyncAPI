@@ -50,7 +50,7 @@ fn object_schema_to_string(
         .properties
         .iter()
         .map(|(key, val)| match val {
-            ReferenceOr::Item(x) => schema_parser_mapper(x, key, all_structs),
+            ReferenceOr::Item(x) => schema_to_rust_types(x, key, all_structs),
             ReferenceOr::Reference { reference: _ } => Err(SchemaParserError::GenericError(
                 "References are not supported yet".to_string(),
                 property_name.to_string().into(),
@@ -153,9 +153,14 @@ fn primitive_type_to_string(
     schema_type: Type,
     property_name: &str,
 ) -> Result<String, SchemaParserError> {
+    let variable_name = if !property_name.is_empty() {
+        validate_identifier_string(property_name, false)
+    } else {
+        "value_with_no_name".to_string()
+    };
     Ok(format!(
         "pub {}: {}",
-        validate_identifier_string(property_name, false),
+        variable_name,
         format_to_rust_type(&schema_type)
     ))
 }
@@ -244,7 +249,7 @@ pub fn build_multi_payload_message(message_name: &str, payload_name: &str) -> St
     )
 }
 
-pub fn schema_parser_mapper(
+pub fn schema_to_rust_types(
     schema: &Schema,
     property_name: &str,
     all_structs: &mut HashMap<String, String>,
@@ -257,7 +262,7 @@ pub fn schema_parser_mapper(
                 Ok(format!(
                     "pub {}: {}",
                     struct_name,
-                    validate_identifier_string(struct_name.as_str(), false).as_str()
+                    validate_identifier_string(struct_name.as_str(), true).as_str()
                 ))
             }
             Type::Array(array_type) => array_type_to_string(array_type, property_name),
@@ -272,7 +277,7 @@ pub fn schema_parser_mapper(
                 match schema {
                     ReferenceOr::Item(item_schema) => {
                         let payload_variant_name = format!("{}Payload{}", property_name, index + 1);
-                        let result = schema_parser_mapper(
+                        let result = schema_to_rust_types(
                             item_schema,
                             payload_variant_name.as_str(),
                             all_structs,
@@ -346,7 +351,7 @@ mod tests {
             for (name, schema) in definition {
                 let s = Box::new(schema);
                 let structs = &mut HashMap::new();
-                schema_parser_mapper(&s, &name, structs).unwrap();
+                schema_to_rust_types(&s, &name, structs).unwrap();
                 let filename_without_extension = Path::new(schema_paths)
                     .file_stem()
                     .unwrap()

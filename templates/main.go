@@ -31,9 +31,6 @@ async fn main() -> Result<(), async_nats::Error> {
     {{ if (index . 1).original_operation.bindings }}
         let mut {{ (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
        
-        //Just for testing, create additional queue subscriber 
-        let mut {{ (index . 1).unique_id }}_2 = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
-
     {{ else }}
         let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
     {{end}}
@@ -47,11 +44,6 @@ async fn main() -> Result<(), async_nats::Error> {
     {{ end  }}
     {{ range .publish_channels  }}
         listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
-        
-        //just for testing, listen with secong queue subscriber: 
-        listen_for_message(&mut  {{ (index . 1).unique_id }}_2, handler_{{ (index . 1).unique_id }}),
-
-
     {{  end  }}
     );
 
