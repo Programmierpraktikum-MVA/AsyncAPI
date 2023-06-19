@@ -5,7 +5,7 @@ mod parser;
 mod template_model;
 mod utils;
 
-use crate::generator::{cargo_generate_rustdoc, template_render_write};
+use crate::generator::{cargo_fix, cargo_generate_rustdoc, template_render_write};
 use clap::Parser;
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
 use std::path::Path;
@@ -34,14 +34,20 @@ fn main() {
 
     // render template and write
     template_render_write(
-        &template_path.join("main.rstmpl"),
+        &template_path.join("main.go"),
         &async_config,
         &output_path.join("src/main.rs"),
     );
     template_render_write(
-        &template_path.join("handler.rstmpl"),
+        &template_path.join("handler.go"),
         &async_config,
         &output_path.join("src/handler.rs"),
+    );
+
+    template_render_write(
+        &template_path.join("model.go"),
+        &async_config,
+        &output_path.join("src/model.rs"),
     );
     template_render_write(
         &template_path.join("Readme.md"),
@@ -57,6 +63,8 @@ fn main() {
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
     cargo_add(output_path, "serde", None);
+    cargo_add(output_path, "serde_json", None);
+    cargo_fix(output_path);
 
     if args.doc {
         println!("📚 Generating docs...");

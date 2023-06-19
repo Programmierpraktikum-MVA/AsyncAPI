@@ -94,6 +94,65 @@ pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> se
     }
 }
 
+pub fn fill_message_and_payload_names(
+    json: serde_json::Value,
+    root_json: serde_json::Value,
+    is_message: bool,
+    is_message_map: bool,
+    message_name: Option<&str>,
+) -> serde_json::Value {
+    match json {
+        serde_json::Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+            for (key, value) in map {
+                let mut msg_name: Option<&str> = None;
+                if is_message_map {
+                    msg_name = Some(key.as_str());
+                }
+                let mut inside_message = is_message_map;
+                if key == "message" {
+                    inside_message = true;
+                }
+                let mut inside_message_map = false;
+                if key == "messages" || key == "schemas" {
+                    inside_message_map = true;
+                }
+                let new_value = fill_message_and_payload_names(
+                    value,
+                    root_json.clone(),
+                    inside_message,
+                    inside_message_map,
+                    msg_name,
+                );
+                new_map.insert(key, new_value);
+            }
+            if !new_map.contains_key("name") && is_message {
+                if let Some(message_name) = message_name {
+                    new_map.insert("name".to_string(), json!(message_name));
+                }
+            }
+
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(array) => {
+            let new_array = array
+                .into_iter()
+                .map(|value| {
+                    fill_message_and_payload_names(
+                        value,
+                        root_json.clone(),
+                        is_message,
+                        is_message_map,
+                        message_name,
+                    )
+                })
+                .collect();
+            serde_json::Value::Array(new_array)
+        }
+        _ => json,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{fs, path::Path};

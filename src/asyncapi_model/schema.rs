@@ -6,6 +6,9 @@ use std::clone::Clone;
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SchemaData {
+    /// A machine-friendly name for the message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Clone::clone")]
     pub nullable: bool,
     #[serde(default, skip_serializing_if = "Clone::clone")]

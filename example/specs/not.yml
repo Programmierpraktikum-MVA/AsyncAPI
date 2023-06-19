@@ -1,8 +1,11 @@
-asyncapi: '2.6.0'
+asyncapi: '2.1.0'
 info:
   title: Not example
   version: '1.0.0'
-
+servers:
+  production:
+    url: demo.nats.io
+    protocol: nats
 channels:
   test:
     publish:
