@@ -23,6 +23,17 @@ pub fn cargo_fmt(path: &PathBuf) -> Output {
         .expect("failed to format")
 }
 
+// cargo fix, mostly for cleaning unused imports
+pub fn cargo_fix(path: &PathBuf) -> Output {
+    Command::new("cargo")
+        .arg("fix")
+        .arg("--bin")
+        .arg(path)
+        .arg("--allow-dirty")
+        .output()
+        .expect("failed to cargo fix")
+}
+
 pub fn cargo_add(path: &Path, crate_name: &str, features: Option<&str>) {
     let mut command_builder = Command::new("cargo");
     command_builder.arg("add").arg(crate_name);
