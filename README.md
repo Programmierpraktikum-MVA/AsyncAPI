@@ -54,6 +54,10 @@ just generate-service-docs service_name={project-id} # Alternatively, you can us
 
 Remember to replace `{project-id}` with the actual project directory name.
 
+## Limitations
+
+Only json payloads are currently supported for automatic deserialization
+
 ## Contribute
 
 Contributions are always welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.

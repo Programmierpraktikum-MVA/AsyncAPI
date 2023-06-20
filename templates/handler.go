@@ -1,16 +1,10 @@
 use async_nats::{Client, Message};
 use crate::{publish_message,
-{{ range .model.messages }}
-    {{ if .payload }}
-        model::{{ .payload.unique_id }},
+{{ range .model.message_models }}
+    {{ if ne .model_definition "" }}
+        model::{{ .identifier }},
     {{ end }}
 {{ end }}
-
-{{ range .model.enums }}
-    model::{{ .unique_id }},
-{{ end }}
-
-
 };
 use std::time;
 
@@ -22,36 +16,23 @@ use std::time;
     ///     {{ .unique_id }}
     /// {{ end }}
     pub fn handler_{{ (index . 1).unique_id }}(message: Message) {
-        {{ if (index . 1).multiple_messages_enum }}
-            match serde_json::from_slice::<{{ (index . 1).multiple_messages_enum.unique_id }}>(&message.payload.as_ref()) {
-                Ok(deserialized_message) => {
-                    // TODO: Replace this with your own handler code
-                    println!("Received message {:#?}", deserialized_message);
-                },
-                Err(_) => {
-                    println!("Failed to deserialize message payload: {{ (index . 1).multiple_messages_enum.unique_id }}\nOriginal message: {:#?}", message);
-                    // TODO: Handle the failed deserialization here
-                },
-            }
-        {{else}}
         {{ range (index . 1).messages }}
-        match serde_json::from_slice::<{{ .unique_id }}>(&message.payload.as_ref()) {
+        {{ if .payload}}
+        match serde_json::from_slice::<{{ .payload.struct_reference }}>(message.payload.as_ref()) {
             Ok(deserialized_message) => {
                 println!("Received message {:#?}", deserialized_message);
                 // TODO: Replace this with your own handler code
-                {{ if .payload}}
-                {{ if .payload.multiple_payload_enum}}
+                {{ if eq .payload.model_type "enum"}}
                     // TODO: this is always None for now (unreachable),
                     // take a look the comment in src/template_model/simplified_operation.rs/simplify_schema
-                    match deserialized_message.payload {
-                        {{$enumName := .payload.multiple_payload_enum.unique_id}}
-                        {{ range .payload.multiple_payload_enum.messages }}
-                            {{ $enumName }}::{{ .unique_id }}(payload) => {
-                            println!("Received message payload {{ .unique_id }}", payload);
+                    match deserialized_message {
+                        {{$enumName := .payload.identifier}}
+                        {{ range .payload.related_models }}
+                            {{ $enumName }}::{{ .identifier }}(payload) => {
+                            println!("Received message payload {{ .identifier }} {:?}", payload);
                             }   
                         {{ end }}
                     }
-                {{ end }}
                 {{ end }}
             },
             Err(_) => {

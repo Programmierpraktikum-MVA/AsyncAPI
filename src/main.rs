@@ -2,7 +2,7 @@ mod asyncapi_model;
 mod cli;
 mod generator;
 mod parser;
-mod template_model;
+mod template_context;
 mod utils;
 
 use crate::generator::{cargo_fix, cargo_generate_rustdoc, template_render_write};
@@ -19,7 +19,10 @@ fn main() {
     let template_path = Path::new("./templates/");
     let validator_schema_path = Path::new("./validator_schema/2.1.0.json");
 
-    let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
+    // parse the json/yaml spec file to an AsyncAPI model
+    let spec =
+        parser::asyncapi_model_parser::parse_spec_to_model(specfile_path, validator_schema_path)
+            .unwrap();
     // println!("{:?}", spec);
 
     let title: &str = match &args.title {
@@ -30,7 +33,8 @@ fn main() {
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("📂 Output path: {:?}", output_path);
 
-    let async_config = parser::spec_to_pubsub_template_type(&spec).unwrap();
+    // create our template context from the AsyncAPI model
+    let async_config = template_context::create_template_context(&spec).unwrap();
 
     // render template and write
     template_render_write(
