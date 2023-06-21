@@ -5,7 +5,11 @@ mod parser;
 mod template_model;
 mod utils;
 
-use crate::generator::{cargo_fix, cargo_generate_rustdoc, template_render_write};
+use crate::{
+    asyncapi_model::AsyncAPI,
+    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+};
+
 use clap::Parser;
 use generator::{cargo_add, cargo_fmt, cargo_init_project};
 use std::path::Path;
@@ -17,11 +21,17 @@ fn main() {
     println!("📄 Using specification file {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
-    let validator_schema_path = Path::new("./validator_schema/2.1.0.json");
 
-    let spec = parser::parse_spec_to_model(specfile_path, validator_schema_path).unwrap();
-    // println!("{:?}", spec);
-
+    let spec: AsyncAPI = match parser::parse_spec_to_model(specfile_path) {
+        Ok(spec) => {
+            println!("🎉 Specification was parsed successfully!");
+            spec
+        }
+        Err(e) => {
+            eprintln!("❌ Error parsing the specification: {}", e);
+            std::process::exit(1);
+        }
+    };
     let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
@@ -30,7 +40,13 @@ fn main() {
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("📂 Output path: {:?}", output_path);
 
-    let async_config = parser::spec_to_pubsub_template_type(&spec).unwrap();
+    let async_config = match parser::spec_to_pubsub_template_type(&spec) {
+        Ok(async_config) => async_config,
+        Err(e) => {
+            eprintln!("❌ Error parsing the specification: {}", e);
+            std::process::exit(1);
+        }
+    };
 
     // render template and write
     template_render_write(
