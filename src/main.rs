@@ -58,7 +58,7 @@ fn main() {
 
     // make output a compilable project
     cargo_init_project(output_path);
-    cargo_fmt(&output_path.join("src/main.rs"));
+    cargo_fmt(output_path.join("src/main.rs"));
     cargo_add(output_path, "tokio", Some("rt-multi-thread")); // when there are more crates move to generator.rs
     cargo_add(output_path, "async_nats", None);
     cargo_add(output_path, "futures", None);
