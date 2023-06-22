@@ -5,9 +5,12 @@ mod parser;
 mod template_model;
 mod utils;
 
-use crate::generator::{cargo_fix, cargo_generate_rustdoc, template_render_write};
+use crate::{
+    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+    utils::append_file_to_file,
+};
 use clap::Parser;
-use generator::{cargo_add, cargo_fmt, cargo_init_project};
+use generator::{cargo_fmt, cargo_init_project};
 use std::path::Path;
 
 fn main() {
@@ -59,11 +62,12 @@ fn main() {
     // make output a compilable project
     cargo_init_project(output_path);
     cargo_fmt(&output_path.join("src/main.rs"));
-    cargo_add(output_path, "tokio", Some("rt-multi-thread")); // when there are more crates move to generator.rs
-    cargo_add(output_path, "async_nats", None);
-    cargo_add(output_path, "futures", None);
-    cargo_add(output_path, "serde", None);
-    cargo_add(output_path, "serde_json", None);
+    // add dependencies
+    append_file_to_file(
+        template_path.join("dependencies.toml"),
+        output_path.join("Cargo.toml"),
+    )
+    .unwrap();
     cargo_fix(output_path);
 
     if args.doc {
