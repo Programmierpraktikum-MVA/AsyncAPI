@@ -18,7 +18,7 @@ pub fn extract_model_from_channels(
         .flat_map(|x| x.get_related_models_recursive())
         .collect();
 
-    let all_unique_ids = all_schemas.iter().map(|x| x.identifier.clone());
+    let all_unique_ids = all_schemas.iter().map(|x| x.unique_id.clone());
     let unique_ids_set: std::collections::HashSet<String> = all_unique_ids.into_iter().collect();
     let unique_ids = unique_ids_set.into_iter().collect::<Vec<String>>();
     let unique_schemas = unique_ids
@@ -26,7 +26,7 @@ pub fn extract_model_from_channels(
         .map(|unique_id| {
             let schema = all_schemas
                 .iter()
-                .find(|schema| schema.identifier == unique_id)
+                .find(|schema| schema.unique_id == unique_id)
                 .unwrap();
             schema.clone()
         })

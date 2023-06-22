@@ -30,49 +30,7 @@ pub fn parse_json_schema_to_rust_type(
         },
         SchemaKind::OneOf { one_of }
         | SchemaKind::AnyOf { any_of: one_of }
-        | SchemaKind::AllOf { all_of: one_of } => {
-            parse_enum_schema(one_of, property_name)
-            //     let rust_schemas = one_of.iter().enumerate().map(|(index,schema)|
-            //     match schema {
-            //         ReferenceOr::Item(item_schema) => {
-            //             let payload_variant_name = format!("{}Payload{}", property_name, index + 1);
-            //              parse_json_schema_to_rust_type(
-            //                 item_schema,
-            //                 payload_variant_name.as_str(),
-            //             )
-
-            //             // combined_string.push_str(&result.identifier);
-            //             // combined_string.push('\n');
-            //             // struct_names.push(payload_variant_name);
-            //         }
-            //         ReferenceOr::Reference { reference: _ } => {
-            //             panic!("Refs should be resolved by now");
-            //         }
-            //     }
-            // ).map(|r| r.unwrap()).collect::<Vec<RustSchemaRepresentation>>();
-
-            //     let payload_enum_name = format!("{}PayloadEnum", property_name);
-
-            //     let struct_names = rust_schemas.iter().map(|e| e.identifier.clone()).collect::<Vec<String>>();
-            //     let payload_enum =
-            //         enum_schema::build_multi_payload_enum(&struct_names, payload_enum_name.as_str());
-            //     if let Some(_payload_enum) = payload_enum {
-            //         let final_message =
-            //         enum_schema::build_multi_payload_message(property_name, &payload_enum_name);
-            //         Ok(
-            //             RustSchemaRepresentation {
-            //                 identifier: validate_identifier_string(property_name, false),
-            //                 model_definition: final_message,
-            //                 related_models: rust_schemas.iter().flat_map(|e| e.related_models.clone()).collect(),
-            //                 model_type: "enum".to_string(),
-            //                 struct_reference: common::validate_identifier_string(property_name, true)
-            //             }
-            //         )
-            //     }
-            //     else {
-            //         panic!("Failed to build payload enum");
-            //     }
-        }
+        | SchemaKind::AllOf { all_of: one_of } => parse_enum_schema(one_of, property_name),
         SchemaKind::Any(_s) => {
             panic!("Unsupported schema kind {:?}", _s);
         }

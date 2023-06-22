@@ -20,7 +20,7 @@ pub fn primitive_type_to_string(
     };
 
     Ok(RustSchemaRepresentation {
-        identifier: validate_identifier_string(&variable_name, true),
+        unique_id: validate_identifier_string(&variable_name, true),
         struct_reference: format_to_rust_type(&schema_type),
         model_definition: "".to_string(),
         related_models: vec![],

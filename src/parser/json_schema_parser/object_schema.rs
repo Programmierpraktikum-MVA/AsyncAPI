@@ -39,13 +39,13 @@ pub fn parse_object_schema(
 
     let property_string = unwrapped_property_types
         .iter()
-        .map(|x| format!("pub {}: {}", x.identifier, x.struct_reference))
+        .map(|x| format!("pub {}: {}", x.unique_id, x.struct_reference))
         .collect::<Vec<String>>()
         .join(",\n");
     let full_struct = before_string + &property_string + &after_string;
 
     let representation: RustSchemaRepresentation = RustSchemaRepresentation {
-        identifier: identifyer.clone(),
+        unique_id: identifyer.clone(),
         struct_reference: identifyer,
         model_definition: full_struct,
         related_models: unwrapped_property_types,

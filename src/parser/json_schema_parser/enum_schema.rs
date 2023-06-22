@@ -27,12 +27,12 @@ pub fn parse_enum_schema(
     );
 
     schema_representations.iter().for_each(|schema| {
-        let content = format!("{}({}),\n", schema.identifier, schema.struct_reference);
+        let content = format!("{}({}),\n", schema.unique_id, schema.struct_reference);
         string_builder.push_str(&content);
     });
     string_builder.push_str("}\n");
     Ok(RustSchemaRepresentation {
-        identifier: identifyer.clone(),
+        unique_id: identifyer.clone(),
         struct_reference: identifyer,
         model_definition: string_builder,
         model_type: "enum".to_string(),

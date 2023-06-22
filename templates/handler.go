@@ -2,7 +2,7 @@ use async_nats::{Client, Message};
 use crate::{publish_message,
 {{ range .model.message_models }}
     {{ if ne .model_definition "" }}
-        model::{{ .identifier }},
+        model::{{ .unique_id }},
     {{ end }}
 {{ end }}
 };
@@ -24,11 +24,11 @@ use std::time;
                 // TODO: Replace this with your own handler code
                 {{ if eq .payload.model_type "enum"}}
                     match deserialized_message {
-                        {{$enumName := .payload.identifier}}
+                        {{$enumName := .payload.unique_id}}
                         {{ range .payload.related_models }}
-                            {{ $enumName }}::{{ .identifier }}(payload) => {
+                            {{ $enumName }}::{{ .unique_id }}(payload) => {
                             // TODO: Replace this with your own handler code
-                            println!("Received message payload {{ .identifier }} {:?}", payload);
+                            println!("Received message payload {{ .unique_id }} {:?}", payload);
                             }   
                         {{ end }}
                     }
