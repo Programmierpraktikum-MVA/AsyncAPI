@@ -23,12 +23,11 @@ use std::time;
                 println!("Received message {:#?}", deserialized_message);
                 // TODO: Replace this with your own handler code
                 {{ if eq .payload.model_type "enum"}}
-                    // TODO: this is always None for now (unreachable),
-                    // take a look the comment in src/template_model/simplified_operation.rs/simplify_schema
                     match deserialized_message {
                         {{$enumName := .payload.identifier}}
                         {{ range .payload.related_models }}
                             {{ $enumName }}::{{ .identifier }}(payload) => {
+                            // TODO: Replace this with your own handler code
                             println!("Received message payload {{ .identifier }} {:?}", payload);
                             }   
                         {{ end }}
