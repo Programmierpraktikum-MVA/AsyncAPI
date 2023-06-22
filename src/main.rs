@@ -6,9 +6,9 @@ mod template_model;
 mod utils;
 
 use crate::{
+    asyncapi_model::AsyncAPI,
     generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
     utils::append_file_to_file,
-    asyncapi_model::AsyncAPI
 };
 
 use clap::Parser;
