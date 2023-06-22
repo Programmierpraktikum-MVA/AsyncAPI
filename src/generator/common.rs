@@ -40,9 +40,27 @@ pub fn template_render_write<T: Into<gtmpl::Value>>(
     context_ref: T,
     output_path: &PathBuf,
 ) {
-    let template = fs::read_to_string(template_path).expect("file could not be read");
-    let render = gtmpl::template(&template, context_ref).expect("Could not inject template");
-    utils::write_to_path_create_dir(&render, output_path).unwrap();
+    let template = match fs::read_to_string(template_path) {
+        Ok(template) => template,
+        Err(e) => {
+            eprintln!("❌ Error reading template: {}", e);
+            std::process::exit(1);
+        }
+    };
+    let render = match gtmpl::template(&template, context_ref) {
+        Ok(render) => render,
+        Err(e) => {
+            eprintln!("❌ Error rendering template: {}", e);
+            std::process::exit(1);
+        }
+    };
+    match utils::write_to_path_create_dir(&render, output_path) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("❌ Error writing template: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn cargo_generate_rustdoc(path: &Path) {

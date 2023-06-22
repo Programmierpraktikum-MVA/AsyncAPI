@@ -9,18 +9,40 @@ use super::{
     validator::validate_asyncapi_schema,
 };
 
-pub fn parse_spec_to_model(
-    spec_path: &Path,
-    validator_schema_path: &Path,
-) -> Result<AsyncAPI, serde_json::Error> {
-    let spec = parse_string_to_serde_json_value(spec_path);
-    let validator = parse_string_to_serde_json_value(validator_schema_path);
+use reqwest::blocking::get;
 
+pub fn parse_spec_to_model(specs_dir: &Path) -> Result<AsyncAPI, Box<dyn std::error::Error>> {
+    let spec = parse_string_to_serde_json_value(specs_dir);
+    let version = parse_spec_version(&spec);
+
+    // Construct the URL of the validator schema for the parsed version.
+    let versioned_validator_schema_url =
+        format!("https://asyncapi.com/definitions/{}.json", version);
+
+    // Download the versioned validator schema.
+    let validator = download_validator_schema(&versioned_validator_schema_url)?;
+
+    // Validate the spec against the versioned validator schema.
     validate_asyncapi_schema(&validator, &spec);
 
     let preprocessed_spec = preprocess_schema(spec);
     let spec = serde_json::from_value::<AsyncAPI>(preprocessed_spec)?;
+
     Ok(spec)
+}
+
+fn download_validator_schema(url: &str) -> Result<serde_json::Value, reqwest::Error> {
+    println!("📥 Downloading validator schema from: {}", url);
+    let response = match get(url) {
+        Ok(response) => response,
+        Err(error) => {
+            println!("❌ Error downloading validator schema: {}", error);
+            std::process::exit(1);
+        }
+    };
+    let validator = response.json()?;
+    println!("✅ Validator schema downloaded successfully!");
+    Ok(validator)
 }
 
 fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
@@ -28,6 +50,11 @@ fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
     let resolved_refs = resolve_refs(with_message_names.clone(), with_message_names);
     let mut seen = HashSet::new();
     sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen)
+}
+
+fn parse_spec_version(spec: &serde_json::Value) -> String {
+    let version = spec["asyncapi"].as_str().unwrap();
+    version.to_string()
 }
 
 fn parse_string_to_serde_json_value(file_path: &Path) -> serde_json::Value {
