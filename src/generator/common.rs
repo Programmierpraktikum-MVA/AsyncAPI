@@ -35,17 +35,6 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
         .expect("failed to cargo fix")
 }
 
-pub fn cargo_add(path: &Path, crate_name: &str, features: Option<&str>) {
-    let mut command_builder = Command::new("cargo");
-    command_builder.arg("add").arg(crate_name);
-    if let Some(features) = features {
-        command_builder.arg("--features").arg(features);
-    }
-    command_builder
-        .arg(String::from("--manifest-path=") + path.to_str().unwrap() + "/Cargo.toml")
-        .output()
-        .expect("failed to add crate");
-}
 /// reads template from path renders it with context reference and writes to output file
 pub fn template_render_write(
     template_path: &PathBuf,
