@@ -75,6 +75,7 @@ fn main() {
 
     // make output a compilable project
     cargo_init_project(output_path);
+
     cargo_fmt(&output_path.join("src/main.rs"));
     // add dependencies
     append_file_to_file(
@@ -82,6 +83,7 @@ fn main() {
         output_path.join("Cargo.toml"),
     )
     .unwrap();
+
     cargo_fix(output_path);
 
     if args.doc {

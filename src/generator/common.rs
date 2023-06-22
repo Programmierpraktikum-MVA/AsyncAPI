@@ -1,11 +1,12 @@
 use crate::utils;
 use std::{
+    ffi::OsStr,
     fs,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
-
-pub fn cargo_init_project(path: &PathBuf) -> Output {
+/// initialize a cargo project in path
+pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
         .arg("init")
         .arg("--bin")
@@ -13,8 +14,8 @@ pub fn cargo_init_project(path: &PathBuf) -> Output {
         .output()
         .expect("failed create new cargo project")
 }
-
-pub fn cargo_fmt(path: &PathBuf) -> Output {
+/// runs cargo format on path
+pub fn cargo_fmt(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
         .arg("fmt")
         .arg("--")
@@ -23,7 +24,7 @@ pub fn cargo_fmt(path: &PathBuf) -> Output {
         .expect("failed to format")
 }
 
-// cargo fix, mostly for cleaning unused imports
+/// cargo fix, mostly for cleaning unused imports
 pub fn cargo_fix(path: &PathBuf) -> Output {
     Command::new("cargo")
         .arg("fix")
@@ -35,9 +36,9 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
 }
 
 /// reads template from path renders it with context reference and writes to output file
-pub fn template_render_write<T: Into<gtmpl::Value>>(
+pub fn template_render_write(
     template_path: &PathBuf,
-    context_ref: T,
+    context_ref: impl Into<gtmpl::Value>,
     output_path: &PathBuf,
 ) {
     let template = match fs::read_to_string(template_path) {
