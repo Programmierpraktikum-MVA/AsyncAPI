@@ -5,9 +5,14 @@ mod parser;
 mod template_context;
 mod utils;
 
-use crate::generator::{cargo_fix, cargo_generate_rustdoc, template_render_write};
+use crate::{
+    asyncapi_model::AsyncAPI,
+    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+    utils::append_file_to_file,
+};
+
 use clap::Parser;
-use generator::{cargo_add, cargo_fmt, cargo_init_project};
+use generator::{cargo_fmt, cargo_init_project};
 use std::path::Path;
 
 fn main() {
@@ -17,14 +22,17 @@ fn main() {
     println!("📄 Using specification file {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
-    let validator_schema_path = Path::new("./validator_schema/2.1.0.json");
 
-    // parse the json/yaml spec file to an AsyncAPI model
-    let spec =
-        parser::asyncapi_model_parser::parse_spec_to_model(specfile_path, validator_schema_path)
-            .unwrap();
-    // println!("{:?}", spec);
-
+    let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
+        Ok(spec) => {
+            println!("🎉 Specification was parsed successfully!");
+            spec
+        }
+        Err(e) => {
+            eprintln!("❌ Error parsing the specification: {}", e);
+            std::process::exit(1);
+        }
+    };
     let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
@@ -33,10 +41,14 @@ fn main() {
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("📂 Output path: {:?}", output_path);
 
-    // create our template context from the AsyncAPI model
-    let async_config = template_context::create_template_context(&spec).unwrap();
+    let async_config = match template_context::create_template_context(&spec) {
+        Ok(async_config) => async_config,
+        Err(e) => {
+            eprintln!("❌ Error parsing the specification: {}", e);
+            std::process::exit(1);
+        }
+    };
 
-    // render template and write
     template_render_write(
         &template_path.join("main.go"),
         &async_config,
@@ -62,12 +74,15 @@ fn main() {
 
     // make output a compilable project
     cargo_init_project(output_path);
-    cargo_fmt(&output_path.join("src/main.rs"));
-    cargo_add(output_path, "tokio", Some("rt-multi-thread")); // when there are more crates move to generator.rs
-    cargo_add(output_path, "async_nats", None);
-    cargo_add(output_path, "futures", None);
-    cargo_add(output_path, "serde", None);
-    cargo_add(output_path, "serde_json", None);
+
+    cargo_fmt(output_path.join("src/main.rs"));
+    // add dependencies
+    append_file_to_file(
+        template_path.join("dependencies.toml"),
+        output_path.join("Cargo.toml"),
+    )
+    .unwrap();
+
     cargo_fix(output_path);
 
     if args.doc {

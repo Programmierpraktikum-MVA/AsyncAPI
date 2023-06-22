@@ -1,25 +1,27 @@
 use std::path::Path;
 
 use crate::asyncapi_model::AsyncAPI;
-use crate::parser::common;
+use crate::parser::common::read_json_or_yaml_to_value;
+mod common;
 mod preprocessor;
 mod validator;
 
-pub fn parse_spec_to_model(
-    spec_path: &Path,
-    validator_schema_path: &Path,
-) -> Result<AsyncAPI, serde_json::Error> {
-    //read the specification file
-    let spec = common::read_json_or_yaml_to_value(spec_path);
-    //read the validator json schema file
-    let validator = common::read_json_or_yaml_to_value(validator_schema_path);
-    //use the validator to validate the specification
+pub fn parse_spec_to_model(specs_dir: &Path) -> Result<AsyncAPI, Box<dyn std::error::Error>> {
+    let spec = read_json_or_yaml_to_value(specs_dir);
+    let version = common::parse_spec_version(&spec);
+
+    // Construct the URL of the validator schema for the parsed version.
+    let versioned_validator_schema_url =
+        format!("https://asyncapi.com/definitions/{}.json", version);
+
+    // Download the versioned validator schema.
+    let validator = common::download_validator_schema(&versioned_validator_schema_url)?;
+
+    // Validate the spec against the versioned validator schema.
     validator::validate_asyncapi_schema(&validator, &spec);
 
-    // apply preprocessing (add missing names, resolve refs)
     let preprocessed_spec = preprocessor::preprocess_schema(spec);
-
-    //finally read the preprocessed spec into the model
     let spec = serde_json::from_value::<AsyncAPI>(preprocessed_spec)?;
+
     Ok(spec)
 }

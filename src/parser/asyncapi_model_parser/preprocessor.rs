@@ -1,15 +1,11 @@
-use super::common::validate_identifier_string;
 use serde_json::json;
 use std::{collections::HashSet, panic};
 
-use super::common;
+use crate::parser::common::{self, validate_identifier_string};
 
 pub fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
-    // add names to messages and payloads
     let with_message_names = fill_message_and_payload_names(spec.clone(), spec, false, false, None);
-    // resolve references in json
     let resolved_refs = resolve_refs(with_message_names.clone(), with_message_names);
-    // check if operationIds are unique
     let mut seen = HashSet::new();
     sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen)
 }

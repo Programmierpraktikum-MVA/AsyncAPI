@@ -1,11 +1,12 @@
 use crate::utils;
 use std::{
+    ffi::OsStr,
     fs,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
-
-pub fn cargo_init_project(path: &PathBuf) -> Output {
+/// initialize a cargo project in path
+pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
         .arg("init")
         .arg("--bin")
@@ -13,8 +14,8 @@ pub fn cargo_init_project(path: &PathBuf) -> Output {
         .output()
         .expect("failed create new cargo project")
 }
-
-pub fn cargo_fmt(path: &PathBuf) -> Output {
+/// runs cargo format on path
+pub fn cargo_fmt(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
         .arg("fmt")
         .arg("--")
@@ -23,7 +24,7 @@ pub fn cargo_fmt(path: &PathBuf) -> Output {
         .expect("failed to format")
 }
 
-// cargo fix, mostly for cleaning unused imports
+/// cargo fix, mostly for cleaning unused imports
 pub fn cargo_fix(path: &PathBuf) -> Output {
     Command::new("cargo")
         .arg("fix")
@@ -34,26 +35,33 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
         .expect("failed to cargo fix")
 }
 
-pub fn cargo_add(path: &Path, crate_name: &str, features: Option<&str>) {
-    let mut command_builder = Command::new("cargo");
-    command_builder.arg("add").arg(crate_name);
-    if let Some(features) = features {
-        command_builder.arg("--features").arg(features);
-    }
-    command_builder
-        .arg(String::from("--manifest-path=") + path.to_str().unwrap() + "/Cargo.toml")
-        .output()
-        .expect("failed to add crate");
-}
 /// reads template from path renders it with context reference and writes to output file
-pub fn template_render_write<T: Into<gtmpl::Value>>(
+pub fn template_render_write(
     template_path: &PathBuf,
-    context_ref: T,
+    context_ref: impl Into<gtmpl::Value>,
     output_path: &PathBuf,
 ) {
-    let template = fs::read_to_string(template_path).expect("file could not be read");
-    let render = gtmpl::template(&template, context_ref).expect("Could not inject template");
-    utils::write_to_path_create_dir(&render, output_path).unwrap();
+    let template = match fs::read_to_string(template_path) {
+        Ok(template) => template,
+        Err(e) => {
+            eprintln!("❌ Error reading template: {}", e);
+            std::process::exit(1);
+        }
+    };
+    let render = match gtmpl::template(&template, context_ref) {
+        Ok(render) => render,
+        Err(e) => {
+            eprintln!("❌ Error rendering template: {}", e);
+            std::process::exit(1);
+        }
+    };
+    match utils::write_to_path_create_dir(&render, output_path) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("❌ Error writing template: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn cargo_generate_rustdoc(path: &Path) {
