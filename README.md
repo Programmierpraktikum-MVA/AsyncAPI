@@ -56,7 +56,9 @@ Remember to replace `{project-id}` with the actual project directory name.
 
 ## Limitations
 
-Only json payloads are currently supported for automatic deserialization
+- only json payloads are currently supported for automatic deserialization
+- only one server is currently supported and only nats protocol is supported
+- only one message is currently supported per channel, payloads can be choosen freely including anyOf/oneOf/allOf
 
 ## Contribute
 
