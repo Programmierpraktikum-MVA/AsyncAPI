@@ -6,7 +6,7 @@ use std::{
     process::{Command, Output},
 };
 
-use gtmpl::Context;
+use gtmpl::{gtmpl_fn, Context, Func, FuncError, Template, TemplateError, Value};
 /// initialize a cargo project in path
 pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
@@ -37,25 +37,27 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
         .expect("failed to cargo fix")
 }
 
-pub fn camel_to_snake_case(input: &str) -> String {
-    let mut snake_case = String::new();
-    let mut prev_char_lowercase = false;
-    // iterator wäre vlt. cooler aber so geht auch
-    for c in input.chars() {
-        if c.is_uppercase() {
-            if prev_char_lowercase {
-                snake_case.push('_');
-            }
-            snake_case.push(c.to_lowercase().next().unwrap());
-            prev_char_lowercase = false;
-        } else {
-            snake_case.push(c);
-            prev_char_lowercase = true;
-        }
-    }
+gtmpl_fn!(
+    fn camel_to_snake_case(input: String) -> Result<String, FuncError> {
+        let mut snake_case = String::new();
+        let mut prev_char_lowercase = false;
 
-    snake_case
-}
+        for c in input.chars() {
+            if c.is_uppercase() {
+                if prev_char_lowercase {
+                    snake_case.push('_');
+                }
+                snake_case.push(c.to_lowercase().next().unwrap());
+                prev_char_lowercase = false;
+            } else {
+                snake_case.push(c);
+                prev_char_lowercase = true;
+            }
+        }
+
+        Ok(snake_case)
+    }
+);
 
 /// reads template from path renders it with context reference and writes to output file
 pub fn template_render_write(
@@ -70,7 +72,11 @@ pub fn template_render_write(
             std::process::exit(1);
         }
     };
-    let render = match gtmpl::template(&template, context_ref) {
+    let render = match render_template(
+        &template,
+        context_ref,
+        &[("camel_to_snake_case", camel_to_snake_case as Func)],
+    ) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -85,7 +91,28 @@ pub fn template_render_write(
         }
     }
 }
+/// parses templates, adds funcs so they can be executed from inside the template and renders templatey
+///
+/// had to rewrite gtmpl::nats, since it does not allow for functions to be added to Template and
+/// somehow does not allow for functions declared as a Context-struct field to be called on the context
+fn render_template<C: Into<Value>, F: Into<String> + Clone>(
+    template_str: &str,
+    context: C,
+    template_functions: &[(F, Func)],
+) -> Result<String, TemplateError> {
+    let mut tmpl = Template::default();
+    // add functions to template
+    tmpl.funcs.extend(
+        template_functions
+            .iter()
+            .cloned()
+            .map(|(key, value)| (key.into(), value)),
+    );
+    tmpl.parse(template_str)?;
+    tmpl.render(&Context::from(context)).map_err(Into::into)
+}
 
+/// uses cargo to generate a rustdoc for project in path
 pub fn cargo_generate_rustdoc(path: &Path) {
     Command::new("cargo")
         .current_dir(path)
