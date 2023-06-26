@@ -5,6 +5,8 @@ use std::{
     path::{Path, PathBuf},
     process::{Command, Output},
 };
+
+use gtmpl::{Context};
 /// initialize a cargo project in path
 pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
@@ -33,6 +35,26 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
         .arg("--allow-dirty")
         .output()
         .expect("failed to cargo fix")
+}
+
+pub fn camel_to_snake_case(input: &str) -> String {
+    let mut snake_case = String::new();
+    let mut prev_char_lowercase = false;
+
+    for c in input.chars() {
+        if c.is_ascii_uppercase() {
+            if prev_char_lowercase {
+                snake_case.push('_');
+            }
+            snake_case.push(c.to_ascii_lowercase());
+            prev_char_lowercase = false;
+        } else {
+            snake_case.push(c);
+            prev_char_lowercase = true;
+        }
+    }
+
+    snake_case
 }
 
 /// reads template from path renders it with context reference and writes to output file
