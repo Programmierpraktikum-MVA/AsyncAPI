@@ -101,13 +101,7 @@ fn render_template<C: Into<Value>, F: Into<String> + Clone>(
     template_functions: &[(F, Func)],
 ) -> Result<String, TemplateError> {
     let mut tmpl = Template::default();
-    // add functions to template
-    tmpl.funcs.extend(
-        template_functions
-            .iter()
-            .cloned()
-            .map(|(key, value)| (key.into(), value)),
-    );
+    tmpl.add_funcs(template_functions);
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
 }
