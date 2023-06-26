@@ -6,7 +6,7 @@ use std::{
     process::{Command, Output},
 };
 
-use gtmpl::{Context};
+use gtmpl::Context;
 /// initialize a cargo project in path
 pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
@@ -40,13 +40,13 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
 pub fn camel_to_snake_case(input: &str) -> String {
     let mut snake_case = String::new();
     let mut prev_char_lowercase = false;
-
+    // iterator wäre vlt. cooler aber so geht auch
     for c in input.chars() {
-        if c.is_ascii_uppercase() {
+        if c.is_uppercase() {
             if prev_char_lowercase {
                 snake_case.push('_');
             }
-            snake_case.push(c.to_ascii_lowercase());
+            snake_case.push(c.to_lowercase().next().unwrap());
             prev_char_lowercase = false;
         } else {
             snake_case.push(c);
