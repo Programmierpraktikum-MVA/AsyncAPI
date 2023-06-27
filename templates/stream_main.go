@@ -1,4 +1,5 @@
 mod handler;
+//mod stream_handler;
 mod model;
 
 
@@ -9,6 +10,7 @@ use async_nats::jetstream::consumer::{pull::{self, Config}, Consumer};
 use futures::stream::Take;
 
 use crate::handler::*;
+//use crate::stream_handler::*;
 
 pub struct Producer {}
 
@@ -33,7 +35,7 @@ async fn listen_for_message(sub: &Consumer<Config>, handler: impl Fn(jetstream::
         while let Some(message) = messages.next().await {
             let message = message?;
             handler(message);
-            println!("Message received by Subscriber: {:?}", sub); // if you show sub its a mess, is now a Context
+            println!("Message received by Subscriber: {:?}", sub.cached_info().name); // if you show sub its a mess, is now a Context
         }
     }
     Ok(())
