@@ -39,34 +39,40 @@ pub async fn get_consumer(jetstream: &Context, stream_name: &str) -> Result<Cons
 }
 
 {{ range .subscribe_channels }}
-{{ if (index . 1).original_operation.bindings.nats.streamname }}
-async fn stream_publish_message(client: &Context, channel: &str, payload: &str) {
-    let owned_payload = payload.to_owned().into(); // Convert to Bytes
-    client
-        .publish(channel.to_string(), owned_payload)
-        .await
-        .unwrap();
-    println!("sent");
-}
-{{end}}
+    {{ if (index . 1).original_operation.bindings }}
+        {{if (index . 1).original_operation.bindings.nats}}
+            {{ if (index . 1).original_operation.bindings.nats.streamname }}
+            async fn stream_publish_message(client: &Context, channel: &str, payload: &str) {
+                let owned_payload = payload.to_owned().into(); // Convert to Bytes
+                client
+                    .publish(channel.to_string(), owned_payload)
+                    .await
+                    .unwrap();
+                println!("sent");
+            }
+            {{end}}
+        {{end}}
+    {{end}}
 {{end}} //supports only one stream, otherwise no unique function name(one function is enough for any number of streams, but you have to check if there is one)
 
 
 {{range .publish_channels}}
-{{ if (index . 1).original_operation.bindings.nats.streamname }}
-async fn stream_listen_for_message(sub: &Consumer<Config>, handler: impl Fn(jetstream::Message)) -> Result<(), async_nats::Error>{
-    loop{
-        tokio::time::sleep(Duration::from_millis(1000)).await;
-        let mut messages = sub.messages().await?.take(10);
-        while let Some(message) = messages.next().await {
-            let message = message?;
-            handler(message);
-            println!("Message received by Subscriber: {:?}", sub.cached_info().name); // if you show sub its a mess, is now a Context
+    {{ if (index . 1).original_operation.bindings }}
+        {{ if (index . 1).original_operation.bindings.nats.streamname }}
+        async fn stream_listen_for_message(sub: &Consumer<Config>, handler: impl Fn(jetstream::Message)) -> Result<(), async_nats::Error>{
+            loop{
+                tokio::time::sleep(Duration::from_millis(1000)).await;
+                let mut messages = sub.messages().await?.take(10);
+                while let Some(message) = messages.next().await {
+                    let message = message?;
+                    handler(message);
+                    println!("Message received by Subscriber: {:?}", sub.cached_info().name); // if you show sub its a mess, is now a Context
+                }
+            }
+            Ok(())
         }
-    }
-    Ok(())
-}
-{{end}}
+        {{end}}
+    {{end}}
 {{end}}
 
 #[tokio::main]
@@ -74,31 +80,40 @@ async fn main() -> Result<(), async_nats::Error> {
     let client = async_nats::connect("{{ .server.url }}").await?;
 
     {{ range .publish_channels }}
-    {{ if (index . 1).original_operation.bindings.nats.queue }}
-        let mut {{ (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
-       
-    {{ else if (index . 1).original_operation.bindings.nats.streamname }}
-        let context_jetstream = jetstream::new(client);
-        let {{ (index . 1).unique_id }} = "{{ (index . 1).original_operation.bindings.nats.streamname }}";
-        let consumer = get_consumer(&context_jetstream, &{{ (index . 1).unique_id }}).await?;
-    {{ else }}
-        let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
-    {{end}}
+        {{ if (index . 1).original_operation.bindings }}
+                {{ if (index . 1).original_operation.bindings.nats.queue }}
+                    let mut {{ (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
+                {{ else  }}
+                    let context_jetstream = jetstream::new(client);
+                    let {{ (index . 1).unique_id }} = "{{ (index . 1).original_operation.bindings.nats.streamname }}";
+                    let consumer = get_consumer(&context_jetstream, &{{ (index . 1).unique_id }}).await?;
+                {{end}}
+            {{ else }}
+                let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
+            {{end}}
     {{end}}
 
     //test(&client, "foo").await;
 
     tokio::join!(
     {{ range .subscribe_channels }}
-        {{if (index . 1).original_operation.bindings.nats.streamname}}
+        {{ if (index . 1).original_operation.bindings }}
+             {{if (index . 1).original_operation.bindings.nats.streamname}}
         stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, "{{ (index . 1).original_operation.bindings.nats.streamname }}"),
+             {{ end }}
         {{ else }}
         producer_{{ (index . 1).unique_id }}(&client, "{{ index . 0  }}"),
-        {{ end }}
+            {{ end }}
     {{ end  }}
     {{ range .publish_channels  }}
+        {{ if (index . 1).original_operation.bindings }}
         {{if (index . 1).original_operation.bindings.nats.streamname}}
         stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
+
+        {{ else }}
+        listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
+        {{ end }}
+
         {{ else }}
         listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
         {{end}}

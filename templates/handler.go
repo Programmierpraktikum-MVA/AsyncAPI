@@ -2,8 +2,10 @@ use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
 use crate::{publish_message,
 {{ range .subscribe_channels }}
+{{ if (index . 1).original_operation.bindings }}
 {{ if (index . 1).original_operation.bindings.nats.streamname }}
     stream_publish_message,
+ {{ end }}   
 {{end}}
 {{end}}
 {{ range .model.messages }}
@@ -27,6 +29,7 @@ use std::time;
     /// {{ range (index . 1).messages }}
     ///     {{ .unique_id }}
     /// {{ end }}
+    {{ if (index . 1).original_operation.bindings }}
     {{ if (index . 1).original_operation.bindings.nats.streamname }}
     pub fn stream_handler_{{ (index . 1).unique_id }}(message: jetstream::Message) {
         {{ if (index . 1).multiple_messages_enum }}
@@ -66,6 +69,7 @@ use std::time;
                 // TODO: Handle the failed deserialization here
             },
         }
+        {{ end }}
         {{ end }}
         {{ end }}
     }
@@ -120,6 +124,7 @@ use std::time;
     /// {{ range (index . 1).messages }}
     ///     {{ .unique_id }}
     /// {{ end }}
+    {{ if (index . 1).original_operation.bindings }}
     {{ if (index . 1).original_operation.bindings.nats.streamname }}
     pub async fn stream_producer_{{ (index . 1).unique_id }}(context_stream: &Context, channel: &str) { //context instead of client
         // This is just an example producer, publishing a message every 2 seconds
@@ -138,6 +143,7 @@ use std::time;
             publish_message(client, channel, "{\"test\":\"serialized\"}").await;
         }
     }
+    {{end}}
     {{end}}
 {{ end  }}
 
