@@ -11,6 +11,23 @@
             },
             "password": {
               "type": "string"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "friends": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "icq_number": {
+                  "type": "string"
+                }
+              }
             }
           }
         },

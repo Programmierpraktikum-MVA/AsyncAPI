@@ -1,16 +1,11 @@
-use crate::asyncapi_model::Server;
+use crate::{
+    asyncapi_model::{Message, Operation, Server},
+    parser::json_schema_parser::types::RustSchemaRepresentation,
+};
 use gtmpl::Value;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::string::*;
-
-use super::{MultiStructEnum, SimplifiedMessage, SimplifiedOperation};
-
-#[derive(Serialize, Debug)]
-pub struct Model {
-    pub messages: Vec<SimplifiedMessage>,
-    pub enums: Vec<MultiStructEnum>,
-}
 
 #[derive(Serialize, Debug)]
 pub struct TemplateContext<'a> {
@@ -21,6 +16,44 @@ pub struct TemplateContext<'a> {
     pub publish_channels: Vec<(&'a String, SimplifiedOperation)>,
     pub model: Model,
 }
+
+#[derive(Serialize, Debug)]
+pub struct Model {
+    pub message_models: Vec<RustSchemaRepresentation>,
+    // pub enums: Vec<MultiStructEnum>,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct SimplifiedOperation {
+    pub unique_id: String,
+    pub original_operation: Operation,
+    // array, da es eine oder mehrere messages geben kann
+    pub messages: Vec<SimplifiedMessage>,
+    // pub multiple_messages_enum: Option<MultiStructEnum>,
+}
+#[derive(Serialize, Debug, Clone)]
+
+pub struct MultiStructEnum {
+    pub unique_id: String,
+    pub messages: Vec<SimplifiedMessage>,
+    pub struct_definition: String,
+}
+#[derive(Serialize, Debug, Clone)]
+
+pub struct SimplifiedMessage {
+    pub unique_id: String,
+    pub original_message: Message,
+    pub payload: Option<RustSchemaRepresentation>,
+}
+// #[derive(Serialize, Debug, Clone)]
+
+// pub struct SimplifiedSchema {
+//     pub unique_id: String,
+//     pub original_schema: Schema,
+//     pub struct_definition: String,
+//     pub struct_names: Vec<String>,
+//     // pub multiple_payload_enum: Option<MultiStructEnum>,
+// }
 
 impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
     fn from(value: &TemplateContext<'a>) -> Self {

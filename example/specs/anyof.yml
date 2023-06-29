@@ -10,25 +10,26 @@ channels:
   test:
     publish:
       message:
-        $ref: '#/components/messages/testMessages'
+        $ref: '#/components/messages/oneOfMessage'
+  simple:
+    publish:
+      message: 
+        payload:
+          type: string
 
 components:
   messages:
-    testMessages:
+    oneOfMessage:
       payload:
         anyOf: # anyOf in payload schema
-          - $ref: "#/components/schemas/objectWithKey"
-          - $ref: "#/components/schemas/objectWithKey2"
+          - type: object
+            properties:
+              keyOne:
+                type: string
+          - type: object
+            properties:
+              keyTwo:
+                type: number
+          - type: string
+          - type: number
 
-  schemas:
-    objectWithKey:
-      type: object
-      properties:
-        key:
-          type: string
-          additionalProperties: false
-    objectWithKey2:
-      type: object
-      properties:
-        key2:
-          type: string

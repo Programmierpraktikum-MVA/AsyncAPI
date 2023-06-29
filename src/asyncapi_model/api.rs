@@ -1,9 +1,6 @@
+use super::{Channel, Components, ExternalDocumentation, Info, ReferenceOr, Server, Tag};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-
-use crate::template_model::{simplify_operation, SimplifiedOperation};
-
-use super::{Channel, Components, ExternalDocumentation, Info, ReferenceOr, Server, Tag};
 
 /// This is the root document object for the API specification.
 /// It combines resource listing and API declaration together into one document.
@@ -167,28 +164,4 @@ pub struct AsyncAPI {
     /// [Specification Extensions](https://www.asyncapi.com/docs/specifications/v2.3.0#specificationExtensions).
     #[serde(flatten)]
     pub extensions: IndexMap<String, serde_json::Value>,
-}
-impl AsyncAPI {
-    pub fn get_subscribe_channels_operations(&self) -> Vec<(&String, SimplifiedOperation)> {
-        self.channels
-            .iter()
-            .filter_map(|(channel_name, channel)| {
-                channel
-                    .subscribe
-                    .as_ref()
-                    .map(|operation| (channel_name, simplify_operation(operation, channel_name)))
-            })
-            .collect()
-    }
-    pub fn get_publish_channels_operations(&self) -> Vec<(&String, SimplifiedOperation)> {
-        self.channels
-            .iter()
-            .filter_map(|(channel_name, channel)| {
-                channel
-                    .publish
-                    .as_ref()
-                    .map(|operation| (channel_name, simplify_operation(operation, channel_name)))
-            })
-            .collect()
-    }
 }

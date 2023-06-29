@@ -2,7 +2,7 @@ mod asyncapi_model;
 mod cli;
 mod generator;
 mod parser;
-mod template_model;
+mod template_context;
 mod utils;
 
 use crate::{
@@ -23,7 +23,7 @@ fn main() {
 
     let template_path = Path::new("./templates/");
 
-    let spec: AsyncAPI = match parser::parse_spec_to_model(specfile_path) {
+    let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
         Ok(spec) => {
             println!("🎉 Specification was parsed successfully!");
             spec
@@ -41,7 +41,7 @@ fn main() {
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("📂 Output path: {:?}", output_path);
 
-    let async_config = match parser::spec_to_pubsub_template_type(&spec) {
+    let async_config = match template_context::create_template_context(&spec) {
         Ok(async_config) => async_config,
         Err(e) => {
             eprintln!("❌ Error parsing the specification: {}", e);
@@ -49,7 +49,6 @@ fn main() {
         }
     };
 
-    // render template and write
     template_render_write(
         &template_path.join("main.go"),
         &async_config,
