@@ -92,8 +92,24 @@ fn parse_string_to_serde_json_value(file_path: &Path) -> serde_json::Value {
 }
 
 pub fn validate_identifier_string(s: &str, camel_case: bool) -> String {
-    let re = Regex::new(r"[^\w\s]").unwrap();
-    let mut sanitized = re.replace_all(s, "").to_string();
+    let re = Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
+    let mut sanitized = String::new();
+
+    if !camel_case {
+        let mut chars = s.chars().peekable();
+        while let Some(current_char) = chars.next() {
+            sanitized.push(current_char);
+            if let Some(next_char) = chars.peek() {
+                if next_char.is_uppercase() {
+                    sanitized.push(' ');
+                }
+            }
+        }
+
+        sanitized = re.replace_all(&sanitized, " ").to_string();
+    } else {
+        sanitized = re.replace_all(s, " ").to_string();
+    }
 
     // split into words and process each word
     let words: Vec<&str> = sanitized.split_whitespace().collect();
