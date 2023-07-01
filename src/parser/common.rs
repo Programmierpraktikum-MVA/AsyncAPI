@@ -1,6 +1,6 @@
-use std::{fs, io::ErrorKind, path::Path};
-
+use log::{debug, error, info, log_enabled, Level};
 use regex::Regex;
+use std::{fs, io::ErrorKind, path::Path};
 
 pub fn read_json_or_yaml_to_value(file_path: &Path) -> serde_json::Value {
     match fs::read_to_string(file_path) {
@@ -27,9 +27,9 @@ pub fn read_json_or_yaml_to_value(file_path: &Path) -> serde_json::Value {
         Err(error) => {
             match error.kind() {
                 ErrorKind::NotFound => {
-                    error("Error: The file '{:?}' could not be found.", file_path)
+                    error!("Error: The file '{:?}' could not be found.", file_path)
                 }
-                _ => error("An unexpected error occurred: {}", error),
+                _ => error!("An unexpected error occurred: {}", error),
             }
             panic!("Could not read file");
         }

@@ -5,7 +5,6 @@ mod parser;
 mod template_context;
 mod utils;
 
-
 use crate::{
     asyncapi_model::AsyncAPI,
     generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
@@ -18,7 +17,6 @@ use generator::{cargo_fmt, cargo_init_project};
 // for the logger!
 use log::{debug, error, info, log_enabled, Level};
 
-
 use env_logger::Builder;
 
 use log::LevelFilter;
@@ -28,22 +26,22 @@ use std::path::Path;
 fn main() {
     Builder::new().filter(None, LevelFilter::Info).init();
 
-    info("STARTING UP...");
+    info!("STARTING UP...");
 
     let args = cli::Args::parse();
 
     let specfile_path = Path::new(&args.specification);
-    info("📄 Using specification file {:?}", specfile_path);
+    info!("📄 Using specification file {:?}", specfile_path);
 
     let template_path = Path::new("./templates/");
 
     let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
         Ok(spec) => {
-            info("🎉 Specification was parsed successfully!");
+            info!("🎉 Specification was parsed successfully!");
             spec
         }
         Err(e) => {
-            error("❌ Error parsing the specification: {}", e);
+            error!("❌ Error parsing the specification: {}", e);
             std::process::exit(1);
         }
     };
@@ -53,12 +51,12 @@ fn main() {
     };
     let output = args.output;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
-    info("📂 Output path: {:?}", output_path);
+    info!("📂 Output path: {:?}", output_path);
 
     let async_config = match template_context::create_template_context(&spec) {
         Ok(async_config) => async_config,
         Err(e) => {
-            error("❌ Error parsing the specification: {}", e);
+            error!("❌ Error parsing the specification: {}", e);
             std::process::exit(1);
         }
     };
@@ -84,7 +82,7 @@ fn main() {
         &async_config,
         &output_path.join("Readme.md"),
     );
-info("🚀 File generation finished, adding dependencies...");
+    info!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project
     cargo_init_project(output_path);
@@ -100,7 +98,7 @@ info("🚀 File generation finished, adding dependencies...");
     cargo_fix(output_path);
 
     if args.doc {
-        info("📚 Generating docs...");
+        info!("📚 Generating docs...");
         cargo_generate_rustdoc(output_path);
     }
 }
