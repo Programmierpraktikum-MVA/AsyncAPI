@@ -3,12 +3,11 @@ mod model;
 use async_nats::{Client, Message, Subscriber};
 use async_nats::jetstream::{self, Context, stream};
 use async_nats::jetstream::consumer::{pull::{self, Config}, Consumer};
-use std::time::Duration;
+use std::{time::Duration, env, collections::HashMap};
 use futures::StreamExt;
+use dotenv::dotenv;
 
 use crate::handler::*;
-
-pub struct Producer {}
 
 async fn listen_for_message(sub: &mut Subscriber, handler: impl Fn(Message)) {
     while let Some(message) = sub.next().await {
@@ -77,48 +76,50 @@ pub async fn get_consumer(jetstream: &Context, stream_name: &str) -> Result<Cons
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
-    let client = async_nats::connect("{{ .server.url }}").await?;
+
+    dotenv().ok();
+    let env: HashMap<String,String> = env::vars().collect();
+
+    let client = async_nats::connect(env.get("SERVER_URL").unwrap()).await?;
 
     {{ range .publish_channels }}
         {{ if (index . 1).original_operation.bindings }}
                 {{ if (index . 1).original_operation.bindings.nats.queue }}
-                    let mut {{ (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
+                    let mut {{ (index . 1).unique_id }} = client.queue_subscribe(env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into(),
+                     env.get("{{ (index . 1).unique_id}}_QUEUE").unwrap().into()).await?;
                 {{ else  }}
                     let clientcpy = client.clone();
                     let context_jetstream = jetstream::new(clientcpy);
-                    let {{ (index . 1).unique_id }} = "{{ (index . 1).original_operation.bindings.nats.streamname }}";
+                    let {{ (index . 1).unique_id }} = env.get("{{ (index . 1).unique_id }}_STREAM").unwrap();
                     let consumer = get_consumer(&context_jetstream, &{{ (index . 1).unique_id }}).await?;
                 {{end}}
         {{ else }}
-            let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
+            let mut {{ (index . 1).unique_id }} = client.subscribe(env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into()).await?;
         {{end}}
     {{end}}
 
-    //test(&client, "foo").await;
 
     tokio::join!(
     {{ range .subscribe_channels }}
         {{ if (index . 1).original_operation.bindings }}
             {{if (index . 1).original_operation.bindings.nats.streamname}}
-                stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, "{{ (index . 1).original_operation.bindings.nats.streamname }}"),
-            {{ else }}
-                producer_{{ (index . 1).unique_id }}(&client, "{{ index . 0  }}"),
+    stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, env.get("{{ (index . 1).unique_id}}_STREAM").unwrap()),
             {{ end }}
         {{ else }}
-            producer_{{ (index . 1).unique_id }}(&client, "{{ index . 0  }}"),
+    producer_{{ (index . 1).unique_id }}(&client, env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap() ),
         {{ end }}
     {{ end  }}
     {{ range .publish_channels  }}
         {{ if (index . 1).original_operation.bindings }}
             {{if (index . 1).original_operation.bindings.nats.streamname}}
-                stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
+    stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
 
             {{ else }}
-                listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
+    listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
             {{ end }}
 
         {{ else }}
-            listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
+    listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
         {{ end }}
     {{ end }}
     );
