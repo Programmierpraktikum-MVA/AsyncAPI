@@ -6,12 +6,21 @@ use crate::handler::*;
 use async_nats::jetstream::{self};
 use std::{env, collections::HashMap};
 use dotenv::dotenv;
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
 
     dotenv().ok();
     let env: HashMap<String,String> = env::vars().collect();
+
+    // Initialize Jaeger Tracer
+    global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
+    let tracer = opentelemetry_jaeger::new_agent_pipeline()
+    .with_service_name("my_service_name")
+        .install_batch(opentelemetry::runtime::Tokio)
+        .expect("Failed to initialize Jaeger Tracer");
 
     let client = async_nats::connect(env.get("SERVER_URL").unwrap()).await?;
 
@@ -56,7 +65,7 @@ async fn main() -> Result<(), async_nats::Error> {
         {{ end }}
     {{ end }}
     );
-
+    opentelemetry::global::shutdown_tracer_provider();
     println!("fin");
     Ok(())
 }
