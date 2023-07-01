@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+    generator::{cargo_fix, cargo_generate_rustdoc, check_for_overwrite, template_render_write},
     utils::append_file_to_file,
 };
 
@@ -49,25 +49,7 @@ fn main() {
         }
     };
 
-    //check if project with name already exists, if yes ask for permission to overwrite
-    if output_path.exists() {
-        let warn_message = format!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.",title);
-        println!("{}", warn_message);
-        let mut input = String::new();
-        match std::io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                if input.trim() != "y" {
-                    println!("Aborting generation...");
-                    std::process::exit(0);
-                }
-                std::fs::remove_dir_all(output_path).unwrap();
-            }
-            Err(err) => {
-                println!("❌ Error reading input: {}", err);
-                std::process::exit(1);
-            }
-        }
-    }
+    check_for_overwrite(output_path, title);
 
     template_render_write(
         &template_path.join("main.go"),
