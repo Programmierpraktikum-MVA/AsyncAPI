@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+    generator::{cargo_fix, cargo_generate_rustdoc, generate_models_folder, template_render_write},
     utils::append_file_to_file,
 };
 
@@ -61,15 +61,29 @@ fn main() {
     );
 
     template_render_write(
-        &template_path.join("model.go"),
-        &async_config,
-        &output_path.join("src/model.rs"),
-    );
-    template_render_write(
         &template_path.join("Readme.md"),
         &async_config,
         &output_path.join("Readme.md"),
     );
+
+    template_render_write(
+        &template_path.join("utils/mod.go"),
+        &async_config,
+        &output_path.join("src/utils/mod.rs"),
+    );
+
+    template_render_write(
+        &template_path.join("utils/streams.go"),
+        &async_config,
+        &output_path.join("src/utils/streams.rs"),
+    );
+    template_render_write(
+        &template_path.join("utils/common.go"),
+        &async_config,
+        &output_path.join("src/utils/common.rs"),
+    );
+
+    generate_models_folder(&async_config, template_path, output_path);
     println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project

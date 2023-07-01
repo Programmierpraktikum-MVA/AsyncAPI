@@ -1,12 +1,6 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
-use crate::{publish_message,stream_publish_message,
-{{ range .model.message_models }}
-    {{ if ne .model_definition "" }}
-        model::{{ .unique_id }},
-    {{ end }}
-{{ end }}
-};
+use crate::{publish_message,utils::stream_publish_message,model::*};
 use std::time;
 
 

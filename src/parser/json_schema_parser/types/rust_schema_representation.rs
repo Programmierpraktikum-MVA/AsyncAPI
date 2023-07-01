@@ -1,5 +1,6 @@
+use gtmpl_derive::Gtmpl;
 use serde::Serialize;
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Gtmpl)]
 pub struct RustSchemaRepresentation {
     // the unique identifier (e.g. UserSignupMessage)
     pub unique_id: String,
