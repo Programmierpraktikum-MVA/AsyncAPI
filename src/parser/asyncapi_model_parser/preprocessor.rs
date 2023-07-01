@@ -23,13 +23,15 @@ pub fn sanitize_operation_ids_and_check_duplicate(
                     if let serde_json::Value::String(string_val) = &value {
                         let sanitized_val = validate_identifier_string(string_val.as_str(), false);
                         if seen_operation_ids.contains(&sanitized_val) {
-                            panic!("Duplicate operationId found: {}", sanitized_val);
+                            //panic!("Duplicate operationId found: {}", sanitized_val);
+                            error("Duplicate operationId found: {}", sanitized_val);
                         } else {
                             seen_operation_ids.insert(sanitized_val.clone());
                             new_map.insert(key, json!(sanitized_val));
                         }
                     } else {
-                        panic!("operationId value is not a string");
+                        //panic!("operationId value is not a string");
+                        error("operationId value is not a string");
                     }
                 } else {
                     new_map.insert(
