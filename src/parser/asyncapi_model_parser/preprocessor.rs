@@ -1,4 +1,4 @@
-use log::{debug, error, info, log_enabled, Level};
+use log::error;
 use serde_json::json;
 use std::{collections::HashSet, panic};
 

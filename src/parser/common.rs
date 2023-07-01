@@ -1,4 +1,4 @@
-use log::{debug, error, info, log_enabled, Level};
+use log::error;
 use regex::Regex;
 use std::{fs, io::ErrorKind, path::Path};
 

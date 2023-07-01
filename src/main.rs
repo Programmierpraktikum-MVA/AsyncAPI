@@ -15,7 +15,7 @@ use clap::Parser;
 use generator::{cargo_fmt, cargo_init_project};
 
 // for the logger!
-use log::{debug, error, info, log_enabled, Level};
+use log::{error, info};
 
 use env_logger::Builder;
 
