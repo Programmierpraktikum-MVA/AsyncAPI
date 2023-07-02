@@ -62,7 +62,6 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
 }
 
 fn key_exists(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl_value::FuncError> {
-    println!("{:?}", args);
     if args.is_empty() {
         return Err(gtmpl_value::FuncError::AtLeastXArgs(
             "Need at least 1 arg for key exists".to_string(),
