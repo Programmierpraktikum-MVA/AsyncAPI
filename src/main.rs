@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, generate_models_folder, template_render_write},
+    generator::{cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder, template_render_write},
     utils::append_file_to_file,
 };
 
@@ -48,6 +48,8 @@ fn main() {
             std::process::exit(1);
         }
     };
+
+    check_for_overwrite(output_path, title);
 
     template_render_write(
         &template_path.join("main.go"),

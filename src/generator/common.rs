@@ -8,6 +8,29 @@ use std::{
     process::{Command, Output},
     vec,
 };
+
+pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
+    //check if project with name already exists, if yes ask for permission to overwrite
+    if output_path.exists() {
+        let warn_message = format!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.",project_title);
+        println!("{}", warn_message);
+        let mut input = String::new();
+        match std::io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                if input.trim() != "y" {
+                    println!("Aborting generation...");
+                    std::process::exit(0);
+                }
+                std::fs::remove_dir_all(output_path).unwrap();
+            }
+            Err(err) => {
+                println!("❌ Error reading input: {}", err);
+                std::process::exit(1);
+            }
+        }
+    }
+}
+
 /// initialize a cargo project in path
 pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
