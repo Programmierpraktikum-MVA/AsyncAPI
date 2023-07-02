@@ -4,14 +4,14 @@ mod utils;
 use utils::*;
 use crate::handler::*;
 use async_nats::jetstream::{self};
-use std::{env, collections::HashMap};
+use std::{collections::HashMap};
 use dotenv::dotenv;
+mod config;
+
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
-
-    dotenv().ok();
-    let env: HashMap<String,String> = env::vars().collect();
+    let env: HashMap<String,String> = config::get_env();
 
     let client = async_nats::connect(env.get("SERVER_URL").unwrap()).await?;
 
@@ -38,11 +38,6 @@ async fn main() -> Result<(), async_nats::Error> {
         {{if key_exists (index . 1) "original_operation" "bindings" "nats" "streamname"}}
             {{ $isStream := ((index . 1).original_operation.bindings.nats.streamname) }}
         {{end}}
-        {{if $isStream}}
-            stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, env.get("{{ (index . 1).unique_id}}_STREAM").unwrap()),
-        {{ else }}
-            producer_{{ (index . 1).unique_id }}(&client, env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap() ),
-        {{ end  }}
     {{ end }}
     {{ range .publish_channels  }}
         {{ $isStream := false }}
@@ -50,9 +45,9 @@ async fn main() -> Result<(), async_nats::Error> {
             {{ $isStream := ((index . 1).original_operation.bindings.nats.streamname) }}
         {{end}}
         {{if $isStream}}
-            stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
+            stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}, &client),
         {{ else }}
-            listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
+            listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}, &client),
         {{ end }}
     {{ end }}
     );

@@ -1,6 +1,6 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
-use crate::{publish_message,utils::stream_publish_message,model::*};
+use crate::{publish_message,stream_publish_message,model::*};
 use std::time;
 
 
@@ -17,7 +17,7 @@ use std::time;
         {{ $isStream := ((index . 1).original_operation.bindings.nats.streamname) }}
     {{end}}
     {{if $isStream}}
-        pub fn stream_handler_{{ (index . 1).unique_id }}(message: jetstream::Message) {
+        pub fn stream_handler_{{ (index . 1).unique_id }}(message: jetstream::Message, client: &Client) {
             {{ range (index . 1).messages }}
                 {{ if .payload}}
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
@@ -45,13 +45,11 @@ use std::time;
             {{ end }}
         }
     {{else}}
-        pub fn handler_{{ (index . 1).unique_id }}(message: Message) {
+        pub async fn handler_{{ (index . 1).unique_id }}(message: Message, client: &Client) {
             {{ range (index . 1).messages }}
                 {{ if .payload}}
                 match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.payload.as_ref()) {
                     Ok(deserialized_message) => {
-                        println!("Received message {:#?}", deserialized_message);
-                        // TODO: Replace this with your own handler code
                         {{ if eq .payload.model_type "enum"}}
                             match deserialized_message {
                                 {{$enumName := .payload.unique_id}}
@@ -62,6 +60,9 @@ use std::time;
                                     }   
                                 {{ end }}
                             }
+                        {{else}}
+                            println!("Received message {:#?}", deserialized_message);
+                            // TODO: Replace this with your own handler code
                         {{ end }}
                     },
                     Err(_) => {
@@ -78,6 +79,7 @@ use std::time;
 
 {{ range .subscribe_channels }}
     {{ $isStream := false }}
+    {{ $channel := . }}
 
     /// Publish a message in the {{ (index . 1).unique_id }} channel
     /// Channel messages:
@@ -89,22 +91,40 @@ use std::time;
     {{ end }}
             
     {{ if $isStream }}
-    pub async fn stream_producer_{{ (index . 1).unique_id }}(context_stream: &Context, channel: &str) { //context instead of client
-        // This is just an example producer, publishing a message every 2 seconds
-        // TODO: replace this with your own producer code
-        loop {
-            tokio::time::sleep(time::Duration::from_secs(2)).await;
-            stream_publish_message(context_stream, channel, "{\"test\":\"serialized\"}").await;
-        }
-    }
-    {{ else }}
-        pub async fn producer_{{ (index . 1).unique_id }}(client: &Client, channel: &str) {
-            // This is just an example producer, publishing a message every 2 seconds
-            // TODO: replace this with your own producer code
-            loop {
-                tokio::time::sleep(time::Duration::from_secs(2)).await;
-                publish_message(client, channel, "{\"test\":\"serialized\"}").await;
+        {{ range (index . 1).messages }}
+            pub async fn stream_producer_{{ (index $channel 1).unique_id }}(context_stream: &Context, payload : {{ if .payload}} {{ .payload.struct_reference }} {{ else }} () {{ end }}) { //context instead of client
+                let subject = config::get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
+                {{ if .payload }}
+                    let payload = match serde_json::to_string(&payload) {
+                        Ok(payload) => payload,
+                        Err(_) => {
+                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            return;
+                        }
+                    };
+                    publish_message(client, &subject, &payload).await;
+                {{else}}
+                    publish_message(client, &subject, &"").await;
+                {{end}}
             }
-        }
+        {{end}}
+    {{ else }}
+        {{ range (index . 1).messages }}
+            pub async fn producer_{{ (index $channel 1).unique_id }}(client: &Client, payload: {{ if .payload }} {{.payload.struct_reference}} {{else}} () {{end}}) {
+                let subject = config::get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
+                {{ if .payload }}
+                    let payload = match serde_json::to_string(&payload) {
+                        Ok(payload) => payload,
+                        Err(_) => {
+                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            return;
+                        }
+                    };
+                    publish_message(client, &subject, &payload).await;
+                {{else}}
+                    publish_message(client, &subject, &"").await;
+                {{end}}
+            }
+        {{ end }}
     {{ end }}
-{{ end  }}
+{{ end }}
