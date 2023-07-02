@@ -1,6 +1,6 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
-use crate::{publish_message,stream_publish_message,model::*};
+use crate::{publish_message,stream_publish_message,model::*, ,config::*};
 use std::time;
 
 
@@ -93,7 +93,7 @@ use std::time;
     {{ if $isStream }}
         {{ range (index . 1).messages }}
             pub async fn stream_producer_{{ (index $channel 1).unique_id }}(context_stream: &Context, payload : {{ if .payload}} {{ .payload.struct_reference }} {{ else }} () {{ end }}) { //context instead of client
-                let subject = config::get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
+                let subject = get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
@@ -111,7 +111,7 @@ use std::time;
     {{ else }}
         {{ range (index . 1).messages }}
             pub async fn producer_{{ (index $channel 1).unique_id }}(client: &Client, payload: {{ if .payload }} {{.payload.struct_reference}} {{else}} () {{end}}) {
-                let subject = config::get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
+                let subject = get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
