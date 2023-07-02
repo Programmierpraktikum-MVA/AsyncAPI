@@ -129,13 +129,19 @@ pub fn template_render_write(
     base_template
         .parse(&template)
         .expect("failed to parse template");
-    let render = match base_template.render(&Context::from(context_ref.into())) {
+    let mut render = match base_template.render(&Context::from(context_ref.into())) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
             std::process::exit(1);
         }
     };
+    if output_path.ends_with(".env") {
+        let mut lines: Vec<&str> = render.split("\n").collect();
+        lines.retain(|&x| x.trim() != "");
+        render = lines.join("\n");
+    }
+
     match utils::write_to_path_create_dir(&render, output_path) {
         Ok(_) => (),
         Err(e) => {

@@ -1,6 +1,9 @@
 mod handler;
 mod model;
 mod utils;
+mod cli; 
+use clap::Parser;
+use crate::cli::*;
 use utils::*;
 use crate::handler::*;
 use async_nats::jetstream::{self};
@@ -12,8 +15,10 @@ mod config;
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
     let env: HashMap<String,String> = config::get_env();
+    let args = cli::Args::parse();
 
     let client = async_nats::connect(env.get("SERVER_URL").unwrap()).await?;
+    handle_cli(&client, &args.command, &args.message).await?;
 
     {{ range .publish_channels }}
         {{ if (index . 1).original_operation.bindings }}
