@@ -16,7 +16,7 @@ pub fn generate_models_folder(
         .for_each(|message_model| {
             if !message_model.model_definition.is_empty() {
                 template_render_write(
-                    &template_path.join("model.go"),
+                    &template_path.join("src/model.go"),
                     message_model.clone(),
                     &output_path.join(format!(
                         "src/model/{}.rs",

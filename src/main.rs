@@ -7,7 +7,10 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder, template_render_write, write_multiple_templates},
+    generator::{
+        cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder,
+        write_multiple_templates,
+    },
     utils::append_file_to_file,
 };
 
@@ -51,11 +54,10 @@ fn main() {
 
     check_for_overwrite(output_path, title);
 
-
     write_multiple_templates(
-        &template_path,
+        template_path,
         &async_config,
-        &output_path,
+        output_path,
         &[
             "src/main.go",
             "src/handler.go",
@@ -63,7 +65,7 @@ fn main() {
             ".env",
             "src/utils/mod.go",
             "src/utils/streams.go",
-            "src/utils/common.rs"
+            "src/utils/common.go",
         ],
     );
 

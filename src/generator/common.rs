@@ -116,7 +116,11 @@ pub fn template_render_write(
     let template = match fs::read_to_string(template_path) {
         Ok(template) => template,
         Err(e) => {
-            eprintln!("❌ Error reading template: {}", e);
+            eprintln!(
+                "❌ Error reading template {:#?}: {}",
+                template_path.to_str(),
+                e
+            );
             std::process::exit(1);
         }
     };

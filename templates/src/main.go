@@ -4,6 +4,8 @@ mod utils;
 use utils::*;
 use crate::handler::*;
 use async_nats::jetstream::{self};
+use std::{env, collections::HashMap};
+use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
