@@ -1,9 +1,8 @@
-use crate::generator::template_functions::TEMPLATE_FUNCTIONS;
 use crate::utils;
+use crate::{generator::template_functions::TEMPLATE_FUNCTIONS, Templates};
 use gtmpl::Context;
 use std::{
     ffi::OsStr,
-    fs,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
@@ -40,18 +39,23 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
 
 /// reads template from path renders it with context reference and writes to output file
 pub fn template_render_write(
-    template_path: &PathBuf,
+    template_path: &str,
     context_ref: impl Into<gtmpl::Value>,
     output_path: &PathBuf,
 ) {
-    let template = match fs::read_to_string(template_path) {
-        Ok(template) => template,
-        Err(e) => {
-            eprintln!("❌ Error reading template: {}", e);
+    let template = match Templates::get(template_path) {
+        Some(template) => template,
+        None => {
+            eprintln!("❌ Error reading template");
             std::process::exit(1);
         }
     };
-    let render = match render_template(&template, context_ref, TEMPLATE_FUNCTIONS) {
+    let template = template.data.as_ref();
+    let render = match render_template(
+        std::str::from_utf8(template).unwrap(),
+        context_ref,
+        TEMPLATE_FUNCTIONS,
+    ) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -69,8 +73,8 @@ pub fn template_render_write(
 
 /// parses templates, adds funcs so they can be executed from inside the template and renders templatey
 /// just like `gtmpl::render` but supports adding template functions
-fn render_template<C: Into<gtmpl::Value>, F: Into<String> + Clone>(
-    template_str: &str,
+fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clone>(
+    template_str: T,
     context: C,
     template_functions: &[(F, gtmpl::Func)],
 ) -> Result<String, gtmpl::TemplateError> {

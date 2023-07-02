@@ -10,10 +10,14 @@ use crate::{
     generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
     utils::append_file_to_file,
 };
-
 use clap::Parser;
 use generator::{cargo_fmt, cargo_init_project};
+use rust_embed::RustEmbed;
 use std::path::Path;
+
+#[derive(RustEmbed)]
+#[folder = "./templates"]
+struct Templates;
 
 fn main() {
     let args = cli::Args::parse();
@@ -49,27 +53,15 @@ fn main() {
         }
     };
 
+    template_render_write("main.go", &async_config, &output_path.join("src/main.rs"));
     template_render_write(
-        &template_path.join("main.go"),
-        &async_config,
-        &output_path.join("src/main.rs"),
-    );
-    template_render_write(
-        &template_path.join("handler.go"),
+        "handler.go",
         &async_config,
         &output_path.join("src/handler.rs"),
     );
 
-    template_render_write(
-        &template_path.join("model.go"),
-        &async_config,
-        &output_path.join("src/model.rs"),
-    );
-    template_render_write(
-        &template_path.join("Readme.md"),
-        &async_config,
-        &output_path.join("Readme.md"),
-    );
+    template_render_write("model.go", &async_config, &output_path.join("src/model.rs"));
+    template_render_write("Readme.md", &async_config, &output_path.join("Readme.md"));
     println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project
