@@ -11,7 +11,7 @@ channels:
     subscribe:
       bindings:
         nats:
-          streamname: testStream
+          x-streamname: testStream
       operationId: onUserSignup
       summary: User signup notification
       message:
@@ -27,7 +27,7 @@ channels:
     publish:
       bindings:
         nats:
-          streamname: testStream
+          x-streamname: testStream
       operationId: userSignedUp
       summary: send welcome email to user
       message:

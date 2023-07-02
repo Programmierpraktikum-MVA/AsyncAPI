@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder, template_render_write},
+    generator::{cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder, template_render_write, write_multiple_templates},
     utils::append_file_to_file,
 };
 
@@ -51,38 +51,20 @@ fn main() {
 
     check_for_overwrite(output_path, title);
 
-    template_render_write(
-        &template_path.join("main.go"),
-        &async_config,
-        &output_path.join("src/main.rs"),
-    );
-    template_render_write(
-        &template_path.join("handler.go"),
-        &async_config,
-        &output_path.join("src/handler.rs"),
-    );
 
-    template_render_write(
-        &template_path.join("Readme.md"),
+    write_multiple_templates(
+        &template_path,
         &async_config,
-        &output_path.join("Readme.md"),
-    );
-
-    template_render_write(
-        &template_path.join("utils/mod.go"),
-        &async_config,
-        &output_path.join("src/utils/mod.rs"),
-    );
-
-    template_render_write(
-        &template_path.join("utils/streams.go"),
-        &async_config,
-        &output_path.join("src/utils/streams.rs"),
-    );
-    template_render_write(
-        &template_path.join("utils/common.go"),
-        &async_config,
-        &output_path.join("src/utils/common.rs"),
+        &output_path,
+        &[
+            "src/main.go",
+            "src/handler.go",
+            "Readme.md",
+            ".env",
+            "src/utils/mod.go",
+            "src/utils/streams.go",
+            "src/utils/common.rs"
+        ],
     );
 
     generate_models_folder(&async_config, template_path, output_path);

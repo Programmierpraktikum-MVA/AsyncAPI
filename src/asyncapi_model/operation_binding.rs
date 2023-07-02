@@ -247,6 +247,8 @@ pub struct NATSOperationBinding {
     /// The version of this binding. If omitted, "latest" MUST be assumed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub binding_version: Option<String>,
+
+    #[serde(rename(deserialize = "x-streamname", serialize = "streamname"))]
     pub streamname: Option<String>,
 }
 

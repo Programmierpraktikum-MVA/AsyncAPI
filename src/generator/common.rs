@@ -1,6 +1,6 @@
 use gtmpl::Context;
 
-use crate::utils;
+use crate::{template_context::TemplateContext, utils};
 use std::{
     ffi::OsStr,
     fs,
@@ -138,6 +138,29 @@ pub fn template_render_write(
         Err(e) => {
             eprintln!("❌ Error writing template: {}", e);
             std::process::exit(1);
+        }
+    }
+}
+
+pub fn write_multiple_templates(
+    template_path: &Path,
+    context_ref: &TemplateContext,
+    output_path: &Path,
+    endings: &[&str],
+) {
+    for ending in endings {
+        if ending.ends_with(".go") {
+            template_render_write(
+                &template_path.join(ending),
+                context_ref,
+                &output_path.join(ending).with_extension("rs"),
+            );
+        } else {
+            template_render_write(
+                &template_path.join(ending),
+                context_ref,
+                &output_path.join(ending),
+            );
         }
     }
 }
