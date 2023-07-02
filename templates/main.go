@@ -29,10 +29,10 @@ async fn main() -> Result<(), async_nats::Error> {
 
     {{ range .publish_channels }}
     {{ if (index . 1).original_operation.bindings }}
-    let mut {{ camel_to_snake_case (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
+    let mut {{ (index . 1).unique_id }} = client.queue_subscribe("{{ index . 0  }}".into(), "{{ (index . 1).original_operation.bindings.nats.queue }}".into()).await?;
        
     {{ else }}
-    let mut {{ camel_to_snake_case (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
+    let mut {{ (index . 1).unique_id }} = client.subscribe("{{ index . 0  }}".into()).await?;
     {{end}}
     {{end}}
 

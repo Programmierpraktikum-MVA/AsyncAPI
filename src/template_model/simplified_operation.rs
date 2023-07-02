@@ -43,7 +43,7 @@ pub fn simplify_operation(operation: &Operation, channel_name: &str) -> Simplifi
     let unique_id = operation
         .operation_id
         .clone()
-        .unwrap_or_else(|| validate_identifier_string(channel_name, true));
+        .unwrap_or_else(|| validate_identifier_string(channel_name, false));
 
     let messages: Vec<SimplifiedMessage> = match &operation.message {
         Some(operation_message) => match operation_message {
