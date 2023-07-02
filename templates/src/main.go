@@ -34,25 +34,25 @@ async fn main() -> Result<(), async_nats::Error> {
 
     tokio::join!(
     {{ range .subscribe_channels }}
-        {{ if (index . 1).original_operation.bindings }}
-            {{if (index . 1).original_operation.bindings.nats.streamname}}
-    stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, env.get("{{ (index . 1).unique_id}}_STREAM").unwrap()),
-            {{ end }}
+        {{ $isStream := false }}
+        {{if key_exists (index . 1) "original_operation" "bindings" "nats" "streamname"}}
+            {{ $isStream := ((index . 1).original_operation.bindings.nats.streamname) }}
+        {{end}}
+        {{if $isStream}}
+            stream_producer_{{ (index . 1).unique_id }}(&context_jetstream, env.get("{{ (index . 1).unique_id}}_STREAM").unwrap()),
         {{ else }}
-    producer_{{ (index . 1).unique_id }}(&client, env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap() ),
-        {{ end }}
-    {{ end  }}
+            producer_{{ (index . 1).unique_id }}(&client, env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap() ),
+        {{ end  }}
+    {{ end }}
     {{ range .publish_channels  }}
-        {{ if (index . 1).original_operation.bindings }}
-            {{if (index . 1).original_operation.bindings.nats.streamname}}
-    stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
-
-            {{ else }}
-    listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
-            {{ end }}
-
+        {{ $isStream := false }}
+        {{if key_exists (index . 1) "original_operation" "bindings" "nats" "streamname"}}
+            {{ $isStream := ((index . 1).original_operation.bindings.nats.streamname) }}
+        {{end}}
+        {{if $isStream}}
+            stream_listen_for_message(&consumer, stream_handler_{{ (index . 1).unique_id }}),
         {{ else }}
-    listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
+            listen_for_message(&mut  {{ (index . 1).unique_id }}, handler_{{ (index . 1).unique_id }}),
         {{ end }}
     {{ end }}
     );
