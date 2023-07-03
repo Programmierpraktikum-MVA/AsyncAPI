@@ -1,7 +1,6 @@
 use crate::generator::template_functions::TEMPLATE_FUNCTIONS;
-use crate::utils;
-use gtmpl::Context;
 use crate::{template_context::TemplateContext, utils};
+use gtmpl::Context;
 use std::{
     ffi::OsStr,
     fs,
@@ -78,7 +77,7 @@ pub fn template_render_write(
             std::process::exit(1);
         }
     };
-    let render = match render_template(&template, context_ref, TEMPLATE_FUNCTIONS) {
+    let mut render = match render_template(&template, context_ref, TEMPLATE_FUNCTIONS) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -111,7 +110,7 @@ fn render_template<C: Into<gtmpl::Value>, F: Into<String> + Clone>(
     tmpl.add_funcs(template_functions);
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
-  }
+}
 
 pub fn write_multiple_templates(
     template_path: &Path,
