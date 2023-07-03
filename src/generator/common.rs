@@ -1,6 +1,6 @@
 use gtmpl::Context;
 
-use crate::utils;
+use crate::{template_context::TemplateContext, utils};
 use std::{
     ffi::OsStr,
     fs,
@@ -8,6 +8,29 @@ use std::{
     process::{Command, Output},
     vec,
 };
+
+pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
+    //check if project with name already exists, if yes ask for permission to overwrite
+    if output_path.exists() {
+        let warn_message = format!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.",project_title);
+        println!("{}", warn_message);
+        let mut input = String::new();
+        match std::io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                if input.trim() != "y" {
+                    println!("Aborting generation...");
+                    std::process::exit(0);
+                }
+                std::fs::remove_dir_all(output_path).unwrap();
+            }
+            Err(err) => {
+                println!("❌ Error reading input: {}", err);
+                std::process::exit(1);
+            }
+        }
+    }
+}
+
 /// initialize a cargo project in path
 pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
     Command::new("cargo")
@@ -39,7 +62,6 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
 }
 
 fn key_exists(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl_value::FuncError> {
-    println!("{:?}", args);
     if args.is_empty() {
         return Err(gtmpl_value::FuncError::AtLeastXArgs(
             "Need at least 1 arg for key exists".to_string(),
@@ -94,7 +116,11 @@ pub fn template_render_write(
     let template = match fs::read_to_string(template_path) {
         Ok(template) => template,
         Err(e) => {
-            eprintln!("❌ Error reading template: {}", e);
+            eprintln!(
+                "❌ Error reading template {:#?}: {}",
+                template_path.to_str(),
+                e
+            );
             std::process::exit(1);
         }
     };
@@ -103,18 +129,47 @@ pub fn template_render_write(
     base_template
         .parse(&template)
         .expect("failed to parse template");
-    let render = match base_template.render(&Context::from(context_ref.into())) {
+    let mut render = match base_template.render(&Context::from(context_ref.into())) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
             std::process::exit(1);
         }
     };
+    if output_path.ends_with(".env") {
+        let mut lines: Vec<&str> = render.split('\n').collect();
+        lines.retain(|&x| x.trim() != "");
+        render = lines.join("\n");
+    }
+
     match utils::write_to_path_create_dir(&render, output_path) {
         Ok(_) => (),
         Err(e) => {
             eprintln!("❌ Error writing template: {}", e);
             std::process::exit(1);
+        }
+    }
+}
+
+pub fn write_multiple_templates(
+    template_path: &Path,
+    context_ref: &TemplateContext,
+    output_path: &Path,
+    endings: &[&str],
+) {
+    for ending in endings {
+        if ending.ends_with(".go") {
+            template_render_write(
+                &template_path.join(ending),
+                context_ref,
+                &output_path.join(ending).with_extension("rs"),
+            );
+        } else {
+            template_render_write(
+                &template_path.join(ending),
+                context_ref,
+                &output_path.join(ending),
+            );
         }
     }
 }

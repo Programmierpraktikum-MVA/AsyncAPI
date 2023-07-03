@@ -7,7 +7,10 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
+    generator::{
+        cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder,
+        write_multiple_templates,
+    },
     utils::append_file_to_file,
 };
 
@@ -33,6 +36,7 @@ fn main() {
             std::process::exit(1);
         }
     };
+
     let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
@@ -49,27 +53,26 @@ fn main() {
         }
     };
 
-    template_render_write(
-        &template_path.join("main.go"),
+    check_for_overwrite(output_path, title);
+
+    write_multiple_templates(
+        template_path,
         &async_config,
-        &output_path.join("src/main.rs"),
-    );
-    template_render_write(
-        &template_path.join("handler.go"),
-        &async_config,
-        &output_path.join("src/handler.rs"),
+        output_path,
+        &[
+            "src/main.go",
+            "src/handler.go",
+            "src/cli.go",
+            "Readme.md",
+            ".env",
+            "src/utils/mod.go",
+            "src/utils/streams.go",
+            "src/utils/common.go",
+            "src/config/mod.go",
+        ],
     );
 
-    template_render_write(
-        &template_path.join("model.go"),
-        &async_config,
-        &output_path.join("src/model.rs"),
-    );
-    template_render_write(
-        &template_path.join("Readme.md"),
-        &async_config,
-        &output_path.join("Readme.md"),
-    );
+    generate_models_folder(&async_config, template_path, output_path);
     println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project

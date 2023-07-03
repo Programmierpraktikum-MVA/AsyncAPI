@@ -57,6 +57,12 @@ channels:
               type: number
             timestamp:
               type: string
+        examples: 
+          - name: simpleExample
+            payload: 
+              userBought: "something"
+              quantity: 1
+              timestamp: "2020-01-01T00:00:00Z"
     publish:
       bindings:
         nats:
@@ -73,6 +79,12 @@ channels:
               type: number
             credit: 
               type: boolean
+        examples: 
+          - name: secondExample
+            payload: 
+              userBought: "something else"
+              quantity: 3
+              credit: true  
   user/sell:
     subscribe:
       operationId: userSold
