@@ -6,14 +6,12 @@ mod template_context;
 mod utils;
 
 use crate::{
-    asyncapi_model::AsyncAPI,
-    generator::{cargo_fix, cargo_generate_rustdoc, template_render_write},
-    utils::append_file_to_file,
+    asyncapi_model::AsyncAPI, generator::template_render_write, utils::append_file_to_file,
 };
 use clap::Parser;
-use generator::{cargo_fmt, cargo_init_project};
 use rust_embed::RustEmbed;
 use std::path::Path;
+use std::process::Command;
 
 #[derive(RustEmbed)]
 #[folder = "./templates"]
@@ -59,26 +57,25 @@ fn main() {
         &async_config,
         &output_path.join("src/handler.rs"),
     );
-
     template_render_write("model.go", &async_config, &output_path.join("src/model.rs"));
     template_render_write("Readme.md", &async_config, &output_path.join("Readme.md"));
     println!("🚀 File generation finished, adding dependencies...");
 
-    // make output a compilable project
-    cargo_init_project(output_path);
-
-    cargo_fmt(output_path.join("src/main.rs"));
+    // make output a compilable project in output_path
+    cargo_command!("init", "--bin", output_path);
+    // runs cargo format on path
+    cargo_command!("fmt", "--", output_path.join("src/main.rs"));
     // add dependencies
     append_file_to_file(
         template_path.join("dependencies.toml"),
         output_path.join("Cargo.toml"),
     )
     .unwrap();
-
-    cargo_fix(output_path);
+    // cargo fix, mostly for cleaning unused imports
+    cargo_command!("fix", "--bin", output_path, "--allow-dirty");
 
     if args.doc {
         println!("📚 Generating docs...");
-        cargo_generate_rustdoc(output_path);
+        cargo_command!(output_path, "doc", "--no-deps");
     }
 }

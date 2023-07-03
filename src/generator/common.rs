@@ -1,40 +1,21 @@
 use crate::utils;
 use crate::{generator::template_functions::TEMPLATE_FUNCTIONS, Templates};
 use gtmpl::Context;
-use std::{
-    ffi::OsStr,
-    path::{Path, PathBuf},
-    process::{Command, Output},
-};
+use std::path::PathBuf;
 
-/// initialize a cargo project in path
-pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
-    Command::new("cargo")
-        .arg("init")
-        .arg("--bin")
-        .arg(path)
-        .output()
-        .expect("failed create new cargo project")
-}
-/// runs cargo format on path
-pub fn cargo_fmt(path: impl AsRef<OsStr>) -> Output {
-    Command::new("cargo")
-        .arg("fmt")
-        .arg("--")
-        .arg(path)
-        .output()
-        .expect("failed to format")
-}
-
-/// cargo fix, mostly for cleaning unused imports
-pub fn cargo_fix(path: &PathBuf) -> Output {
-    Command::new("cargo")
-        .arg("fix")
-        .arg("--bin")
-        .arg(path)
-        .arg("--allow-dirty")
-        .output()
-        .expect("failed to cargo fix")
+/// runs cargo command with options
+/// Example: ` cargo_command!("init","--bin","path"); `
+#[macro_export]
+macro_rules! cargo_command {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut command = Command::new("cargo");
+            $(
+                command.arg($x);
+            )*
+            command.output().expect("failed cargo_command")
+        }
+    };
 }
 
 /// reads template from path renders it with context reference and writes to output file
@@ -82,13 +63,4 @@ fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clo
     tmpl.add_funcs(template_functions);
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
-}
-
-pub fn cargo_generate_rustdoc(path: &Path) {
-    Command::new("cargo")
-        .current_dir(path)
-        .arg("doc")
-        .arg("--no-deps")
-        .output()
-        .expect("failed to generate rustdoc");
 }
