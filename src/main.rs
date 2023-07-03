@@ -6,7 +6,9 @@ mod template_context;
 mod utils;
 
 use crate::{
-    asyncapi_model::AsyncAPI, generator::template_render_write, utils::append_file_to_file,
+    asyncapi_model::AsyncAPI,
+    generator::{check_for_overwrite, generate_models_folder, write_multiple_templates},
+    utils::append_file_to_file,
 };
 use clap::Parser;
 use rust_embed::RustEmbed;
@@ -35,6 +37,7 @@ fn main() {
             std::process::exit(1);
         }
     };
+
     let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
@@ -51,14 +54,26 @@ fn main() {
         }
     };
 
-    template_render_write("main.go", &async_config, &output_path.join("src/main.rs"));
-    template_render_write(
-        "handler.go",
+    check_for_overwrite(output_path, title);
+
+    write_multiple_templates(
         &async_config,
-        &output_path.join("src/handler.rs"),
+        output_path,
+        &[
+            "src/main.go",
+            "src/handler.go",
+            "src/cli.go",
+            "Readme.md",
+            ".env",
+            "src/utils/mod.go",
+            "src/utils/streams.go",
+            "src/utils/common.go",
+            "src/config/mod.go",
+        ],
     );
-    template_render_write("model.go", &async_config, &output_path.join("src/model.rs"));
-    template_render_write("Readme.md", &async_config, &output_path.join("Readme.md"));
+
+    generate_models_folder(&async_config, output_path);
+
     println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project in output_path
