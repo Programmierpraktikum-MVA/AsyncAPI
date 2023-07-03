@@ -1,4 +1,5 @@
 use async_nats::jetstream::{self, Context};
+use async_nats::Client;
 use async_nats::jetstream::consumer::{pull::{Config}, Consumer};
 use std::time::Duration;
 use futures::StreamExt;
@@ -13,17 +14,24 @@ pub async fn stream_publish_message(client: &Context, channel: &str, payload: &s
 }
 
 
-pub async fn stream_listen_for_message(sub: &Consumer<Config>, handler: impl Fn(jetstream::Message)) -> Result<(), async_nats::Error>{
-	loop{
-		tokio::time::sleep(Duration::from_millis(1000)).await;
-		let mut messages = sub.messages().await?.take(10);
-		while let Some(message) = messages.next().await {
-			let message = message?;
-			handler(message);
-			println!("Message received by Subscriber: {:?}", sub.cached_info().name); // if you show sub its a mess, is now a Context
-		}
-	}
-	Ok(())
+pub async fn stream_listen_for_message(
+    sub: &Consumer<Config>,
+    handler: impl Fn(jetstream::Message, &Client),
+    client: &Client
+) -> Result<(), async_nats::Error> {
+    loop {
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+        let mut messages = sub.messages().await?.take(10);
+        while let Some(message) = messages.next().await {
+            let message = message?;
+            handler(message, client);
+            println!(
+                "Message received by Subscriber: {:?}",
+                sub.cached_info().name
+            ); // if you show sub its a mess, is now a Context
+        }
+    }
+    Ok(())
 }
 
 

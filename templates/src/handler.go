@@ -102,9 +102,9 @@ use std::time;
                             return;
                         }
                     };
-                    publish_message(client, &subject, &payload).await;
+                    stream_publish_message(context_stream, &subject, &payload).await;
                 {{else}}
-                    publish_message(client, &subject, &"").await;
+                stream_publish_message(context_stream, &subject, &"").await;
                 {{end}}
             }
         {{end}}
