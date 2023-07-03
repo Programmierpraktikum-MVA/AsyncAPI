@@ -36,6 +36,7 @@ fn main() {
             std::process::exit(1);
         }
     };
+
     let title: &str = match &args.title {
         Some(t) => t,
         None => &spec.info.title,
@@ -61,6 +62,7 @@ fn main() {
         &[
             "src/main.go",
             "src/handler.go",
+            "src/cli.go",
             "Readme.md",
             ".env",
             "src/utils/mod.go",
