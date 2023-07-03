@@ -137,7 +137,7 @@ pub fn template_render_write(
         }
     };
     if output_path.ends_with(".env") {
-        let mut lines: Vec<&str> = render.split("\n").collect();
+        let mut lines: Vec<&str> = render.split('\n').collect();
         lines.retain(|&x| x.trim() != "");
         render = lines.join("\n");
     }
