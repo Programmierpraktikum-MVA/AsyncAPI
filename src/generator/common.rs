@@ -1,12 +1,11 @@
-use gtmpl::Context;
-
+use crate::generator::template_functions::TEMPLATE_FUNCTIONS;
 use crate::{template_context::TemplateContext, utils};
+use gtmpl::Context;
 use std::{
     ffi::OsStr,
     fs,
     path::{Path, PathBuf},
     process::{Command, Output},
-    vec,
 };
 
 pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
@@ -61,52 +60,6 @@ pub fn cargo_fix(path: &PathBuf) -> Output {
         .expect("failed to cargo fix")
 }
 
-fn key_exists(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl_value::FuncError> {
-    if args.is_empty() {
-        return Err(gtmpl_value::FuncError::AtLeastXArgs(
-            "Need at least 1 arg for key exists".to_string(),
-            1,
-        ));
-    }
-    let map = args[0].clone();
-    if args.len() == 1 {
-        return Ok(gtmpl_value::Value::Bool(true));
-    }
-    let keys = args[1..].to_vec();
-    // check if keys is empty
-    let rest_keys: Vec<gtmpl_value::Value> = match keys.len() > 1 {
-        false => vec![],
-        _ => keys[1..].to_vec(),
-    };
-
-    // extract first key
-    if !keys.is_empty() {
-        let key = keys[0].clone();
-        match key {
-            gtmpl_value::Value::String(s) => {
-                let res: Result<gtmpl_value::Value, gtmpl_value::FuncError> = match map {
-                    gtmpl_value::Value::Object(o) => {
-                        // call again with rest of keys
-                        key_exists(
-                            vec![vec![o.get(&s).unwrap().clone()], rest_keys]
-                                .concat()
-                                .as_slice(),
-                        )
-                    }
-                    _ => Ok(gtmpl_value::Value::Bool(false)),
-                };
-                return res;
-            }
-            _ => {
-                return Err(gtmpl_value::FuncError::Generic(
-                    "keys need to be string".to_string(),
-                ));
-            }
-        }
-    }
-    Ok(gtmpl::Value::Bool(true))
-}
-
 /// reads template from path renders it with context reference and writes to output file
 pub fn template_render_write(
     template_path: &PathBuf,
@@ -124,12 +77,7 @@ pub fn template_render_write(
             std::process::exit(1);
         }
     };
-    let mut base_template = gtmpl::Template::default();
-    base_template.add_func("key_exists", key_exists);
-    base_template
-        .parse(&template)
-        .expect("failed to parse template");
-    let mut render = match base_template.render(&Context::from(context_ref.into())) {
+    let mut render = match render_template(&template, context_ref, TEMPLATE_FUNCTIONS) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -149,6 +97,19 @@ pub fn template_render_write(
             std::process::exit(1);
         }
     }
+}
+
+/// parses templates, adds funcs so they can be executed from inside the template and renders templatey
+/// just like `gtmpl::render` but supports adding template functions
+fn render_template<C: Into<gtmpl::Value>, F: Into<String> + Clone>(
+    template_str: &str,
+    context: C,
+    template_functions: &[(F, gtmpl::Func)],
+) -> Result<String, gtmpl::TemplateError> {
+    let mut tmpl = gtmpl::Template::default();
+    tmpl.add_funcs(template_functions);
+    tmpl.parse(template_str)?;
+    tmpl.render(&Context::from(context)).map_err(Into::into)
 }
 
 pub fn write_multiple_templates(
