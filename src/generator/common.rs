@@ -1,12 +1,22 @@
-use crate::generator::template_functions::TEMPLATE_FUNCTIONS;
+use crate::{generator::template_functions::TEMPLATE_FUNCTIONS, Templates};
 use crate::{template_context::TemplateContext, utils};
 use gtmpl::Context;
-use std::{
-    ffi::OsStr,
-    fs,
-    path::{Path, PathBuf},
-    process::{Command, Output},
-};
+use std::path::{Path, PathBuf};
+
+/// runs cargo command with options
+/// Example: ` cargo_command!("init","--bin","path"); `
+#[macro_export]
+macro_rules! cargo_command {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut command = Command::new("cargo");
+            $(
+                command.arg($x);
+            )*
+            command.output().expect("failed cargo_command")
+        }
+    };
+}
 
 pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     //check if project with name already exists, if yes ask for permission to overwrite
@@ -30,54 +40,25 @@ pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     }
 }
 
-/// initialize a cargo project in path
-pub fn cargo_init_project(path: impl AsRef<OsStr>) -> Output {
-    Command::new("cargo")
-        .arg("init")
-        .arg("--bin")
-        .arg(path)
-        .output()
-        .expect("failed create new cargo project")
-}
-/// runs cargo format on path
-pub fn cargo_fmt(path: impl AsRef<OsStr>) -> Output {
-    Command::new("cargo")
-        .arg("fmt")
-        .arg("--")
-        .arg(path)
-        .output()
-        .expect("failed to format")
-}
-
-/// cargo fix, mostly for cleaning unused imports
-pub fn cargo_fix(path: &PathBuf) -> Output {
-    Command::new("cargo")
-        .arg("fix")
-        .arg("--bin")
-        .arg(path)
-        .arg("--allow-dirty")
-        .output()
-        .expect("failed to cargo fix")
-}
-
 /// reads template from path renders it with context reference and writes to output file
 pub fn template_render_write(
-    template_path: &PathBuf,
+    template_path: &str,
     context_ref: impl Into<gtmpl::Value>,
     output_path: &PathBuf,
 ) {
-    let template = match fs::read_to_string(template_path) {
-        Ok(template) => template,
-        Err(e) => {
-            eprintln!(
-                "❌ Error reading template {:#?}: {}",
-                template_path.to_str(),
-                e
-            );
+    let template = match Templates::get(template_path) {
+        Some(template) => template,
+        None => {
+            eprintln!("❌ Error reading template");
             std::process::exit(1);
         }
     };
-    let mut render = match render_template(&template, context_ref, TEMPLATE_FUNCTIONS) {
+    let template = template.data.as_ref();
+    let mut render = match render_template(
+        std::str::from_utf8(template).unwrap(),
+        context_ref,
+        TEMPLATE_FUNCTIONS,
+    ) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -101,8 +82,8 @@ pub fn template_render_write(
 
 /// parses templates, adds funcs so they can be executed from inside the template and renders templatey
 /// just like `gtmpl::render` but supports adding template functions
-fn render_template<C: Into<gtmpl::Value>, F: Into<String> + Clone>(
-    template_str: &str,
+fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clone>(
+    template_str: T,
     context: C,
     template_functions: &[(F, gtmpl::Func)],
 ) -> Result<String, gtmpl::TemplateError> {
@@ -113,33 +94,23 @@ fn render_template<C: Into<gtmpl::Value>, F: Into<String> + Clone>(
 }
 
 pub fn write_multiple_templates(
-    template_path: &Path,
     context_ref: &TemplateContext,
     output_path: &Path,
-    endings: &[&str],
+    template_file_paths: &[&str],
 ) {
-    for ending in endings {
-        if ending.ends_with(".go") {
+    for template_file_path in template_file_paths {
+        if template_file_path.ends_with(".go") {
             template_render_write(
-                &template_path.join(ending),
+                template_file_path,
                 context_ref,
-                &output_path.join(ending).with_extension("rs"),
+                &output_path.join(template_file_path).with_extension("rs"),
             );
         } else {
             template_render_write(
-                &template_path.join(ending),
+                template_file_path,
                 context_ref,
-                &output_path.join(ending),
+                &output_path.join(template_file_path),
             );
         }
     }
-}
-
-pub fn cargo_generate_rustdoc(path: &Path) {
-    Command::new("cargo")
-        .current_dir(path)
-        .arg("doc")
-        .arg("--no-deps")
-        .output()
-        .expect("failed to generate rustdoc");
 }

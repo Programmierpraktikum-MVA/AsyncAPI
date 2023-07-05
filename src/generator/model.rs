@@ -4,11 +4,7 @@ use crate::{parser::common::validate_identifier_string, utils::write_to_path_cre
 
 use std::path::Path;
 
-pub fn generate_models_folder(
-    async_config: &TemplateContext,
-    template_path: &Path,
-    output_path: &Path,
-) {
+pub fn generate_models_folder(async_config: &TemplateContext, output_path: &Path) {
     async_config
         .model
         .message_models
@@ -16,7 +12,7 @@ pub fn generate_models_folder(
         .for_each(|message_model| {
             if !message_model.model_definition.is_empty() {
                 template_render_write(
-                    &template_path.join("src/model.go"),
+                    "src/model.go",
                     message_model.clone(),
                     &output_path.join(format!(
                         "src/model/{}.rs",
