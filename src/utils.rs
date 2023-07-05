@@ -1,10 +1,10 @@
 use std::{
     fs::{self, File, OpenOptions},
     io::{self, Error, Read, Write},
-    path::{Path, PathBuf},
+    path::Path,
 };
 /// writes a file and recursivly creates the directory it is in
-pub fn write_to_path_create_dir(content: &str, path: &PathBuf) -> Result<(), Error> {
+pub fn write_to_path_create_dir(content: &str, path: &Path) -> Result<(), Error> {
     fs::create_dir_all(path.parent().unwrap())?;
     let mut out_file = File::create(path)?;
     out_file.write_all(content.as_bytes())
