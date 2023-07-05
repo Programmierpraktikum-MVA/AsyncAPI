@@ -7,16 +7,17 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{
-        cargo_fix, cargo_generate_rustdoc, check_for_overwrite, generate_models_folder,
-        write_multiple_templates,
-    },
+    generator::{check_for_overwrite, generate_models_folder, write_multiple_templates},
     utils::append_file_to_file,
 };
-
 use clap::Parser;
-use generator::{cargo_fmt, cargo_init_project};
+use rust_embed::RustEmbed;
 use std::path::Path;
+use std::process::Command;
+
+#[derive(RustEmbed)]
+#[folder = "./templates"]
+struct Templates;
 
 fn main() {
     let args = cli::Args::parse();
@@ -56,7 +57,6 @@ fn main() {
     check_for_overwrite(output_path, title);
 
     write_multiple_templates(
-        template_path,
         &async_config,
         output_path,
         &[
@@ -72,24 +72,25 @@ fn main() {
         ],
     );
 
-    generate_models_folder(&async_config, template_path, output_path);
+    generate_models_folder(&async_config, output_path);
+
     println!("🚀 File generation finished, adding dependencies...");
 
-    // make output a compilable project
-    cargo_init_project(output_path);
-
-    cargo_fmt(output_path.join("src/main.rs"));
+    // make output a compilable project in output_path
+    cargo_command!("init", "--bin", output_path);
+    // runs cargo format on path
+    cargo_command!("fmt", "--", output_path.join("src/main.rs"));
     // add dependencies
     append_file_to_file(
         template_path.join("dependencies.toml"),
         output_path.join("Cargo.toml"),
     )
     .unwrap();
-
-    cargo_fix(output_path);
+    // cargo fix, mostly for cleaning unused imports
+    cargo_command!("fix", "--bin", output_path, "--allow-dirty");
 
     if args.doc {
         println!("📚 Generating docs...");
-        cargo_generate_rustdoc(output_path);
+        cargo_command!(output_path, "doc", "--no-deps");
     }
 }
