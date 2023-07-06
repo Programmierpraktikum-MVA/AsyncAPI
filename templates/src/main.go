@@ -65,7 +65,7 @@ async fn main() -> Result<(), async_nats::Error> {
         {{ end }}
     {{ end }}
     );
-
+    opentelemetry::global::shutdown_tracer_provider();
     println!("fin");
     Ok(())
 }
