@@ -10,10 +10,19 @@ use async_nats::jetstream::{self};
 use std::{collections::HashMap};
 use dotenv::dotenv;
 mod config;
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
 
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
+    // Initialize Jaeger Tracer
+    global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
+    let tracer = opentelemetry_jaeger::new_agent_pipeline()
+    .with_service_name("{{ .title}}")
+        .install_batch(opentelemetry::runtime::Tokio)
+        .expect("Failed to initialize Jaeger Tracer");
+
     let env: HashMap<String,String> = config::get_env();
     let args = cli::Args::parse();
 

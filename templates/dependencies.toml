@@ -5,4 +5,5 @@ serde_json = "1.0.97"
 tokio = { version = "1.28.2", features = ["full"] }
 dotenv = "0.15.0"
 clap = {version = "4.3.0", features = ["derive"]}
-
+opentelemetry = { version = "*", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "*", features = ["rt-tokio", "isahc_collector_client"] }
