@@ -1,0 +1,12 @@
+payload:
+  anyOf: # anyOf in payload schema
+    - type: object
+      properties:
+        keyOne:
+          type: string
+    - type: object
+      properties:
+        keyTwo:
+          type: number
+    - type: string
+    - type: number

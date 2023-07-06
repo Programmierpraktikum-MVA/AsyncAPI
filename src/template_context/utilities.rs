@@ -1,43 +1,12 @@
-use std::collections::HashMap;
-
-use serde::Serialize;
-
-use crate::asyncapi_model::{
-    Message, Operation, OperationMessageType, Payload, ReferenceOr, Schema,
+use crate::{
+    asyncapi_model::{Message, Operation, OperationMessageType, Payload, ReferenceOr, Schema},
+    parser::{
+        common::validate_identifier_string,
+        json_schema_parser::{parse_json_schema_to_rust_type, types::RustSchemaRepresentation},
+    },
 };
-use crate::parser::{build_multi_message_enum, schema_to_rust_types, validate_identifier_string};
 
-#[derive(Serialize, Debug, Clone)]
-pub struct SimplifiedOperation {
-    pub unique_id: String,
-    pub original_operation: Operation,
-    // array, da es eine oder mehrere messages geben kann
-    pub messages: Vec<SimplifiedMessage>,
-    pub multiple_messages_enum: Option<MultiStructEnum>,
-}
-#[derive(Serialize, Debug, Clone)]
-
-pub struct MultiStructEnum {
-    pub unique_id: String,
-    pub messages: Vec<SimplifiedMessage>,
-    pub struct_definition: String,
-}
-#[derive(Serialize, Debug, Clone)]
-
-pub struct SimplifiedMessage {
-    pub unique_id: String,
-    pub original_message: Message,
-    pub payload: Option<SimplifiedSchema>,
-}
-#[derive(Serialize, Debug, Clone)]
-
-pub struct SimplifiedSchema {
-    pub unique_id: String,
-    pub original_schema: Schema,
-    pub struct_definition: String,
-    pub struct_names: Vec<String>,
-    pub multiple_payload_enum: Option<MultiStructEnum>,
-}
+use super::types::{SimplifiedMessage, SimplifiedOperation};
 
 pub fn simplify_operation(operation: &Operation, channel_name: &str) -> SimplifiedOperation {
     let unique_id = operation
@@ -62,13 +31,13 @@ pub fn simplify_operation(operation: &Operation, channel_name: &str) -> Simplifi
         },
         _ => vec![],
     };
-    let message_enum =
-        build_multi_message_enum(&messages, format!("{}Message", unique_id).as_str());
+    // let message_enum =
+    //     build_multi_message_enum(&messages, format!("{}Message", unique_id).as_str());
     SimplifiedOperation {
         unique_id,
         original_operation: operation.clone(),
         messages,
-        multiple_messages_enum: message_enum,
+        // multiple_messages_enum: message_enum,
     }
 }
 
@@ -78,7 +47,7 @@ pub fn simplify_message(
 ) -> SimplifiedMessage {
     if let ReferenceOr::Item(message) = message_or_ref {
         let mut unique_id: String = "".to_string();
-        let payload: Option<SimplifiedSchema> = match &message.payload {
+        let payload = match &message.payload {
             Some(schema) => {
                 if let Payload::Schema(schema) = schema {
                     unique_id = validate_identifier_string(
@@ -113,9 +82,15 @@ pub fn simplify_message(
         panic!("Refs should be resolved by now");
     }
 }
-pub fn simplify_schema(schema: &Schema, unique_parent_id: &str) -> SimplifiedSchema {
-    let mut schemas = HashMap::<String, String>::new();
-    let struct_name = schema_to_rust_types(schema, unique_parent_id, &mut schemas).unwrap();
+
+pub fn simplify_schema(schema: &Schema, unique_parent_id: &str) -> RustSchemaRepresentation {
+    parse_json_schema_to_rust_type(schema, unique_parent_id).unwrap()
+    // let rust_schema = parse_json_schema_to_rust_type(schema, unique_parent_id).unwrap();
+    // let mut schema_source = rust_schema.related_models.clone();
+    // schema_source.push(rust_schema.clone());
+    // let schemas = schema_source
+    //     .into_iter().map(|s| s.model_definition).collect::<Vec<String>>().join("\n");
+    // let struct_name =rust_schema.identifier.clone();
     // TODO: this whole thing will need to be refactored, there's no way this will work in this form
     // the idea is that we need to get the payload enum and its members out of the schema
     // but we save it as string only... so the whole parsing function will need to be restructured and way more modular
@@ -130,11 +105,11 @@ pub fn simplify_schema(schema: &Schema, unique_parent_id: &str) -> SimplifiedSch
     //         struct_definition: "".to_string(),
     //     });
     // }
-    SimplifiedSchema {
-        unique_id: unique_parent_id.to_string(),
-        original_schema: schema.clone(),
-        struct_definition: schemas.into_values().collect::<Vec<String>>().join("\n"),
-        struct_names: vec![struct_name],
-        multiple_payload_enum: None,
-    }
+    // RustSchemaRepresentation {
+    //     unique_id: unique_parent_id.to_string(),
+    //     original_schema: schema.clone(),
+    //     struct_definition: schemas,
+    //     struct_names: vec![struct_name],
+    //     // multiple_payload_enum: None,
+    // }
 }

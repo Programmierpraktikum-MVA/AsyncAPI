@@ -243,11 +243,13 @@ pub struct MQTT5OperationBinding {}
 #[serde(rename_all = "camelCase")]
 pub struct NATSOperationBinding {
     /// Defines the name of the queue to use. It MUST NOT exceed 255 characters.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub queue: Option<String>,
     /// The version of this binding. If omitted, "latest" MUST be assumed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub binding_version: Option<String>,
+
+    #[serde(rename(deserialize = "x-streamname", serialize = "streamname"))]
+    pub streamname: Option<String>,
 }
 
 /// This object MUST NOT contain any properties. Its name is reserved for future use.

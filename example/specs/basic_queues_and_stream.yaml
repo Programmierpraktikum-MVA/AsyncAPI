@@ -1,0 +1,98 @@
+asyncapi: 2.1.0
+info:
+  title: queue_and_stream_api
+  version: 1.0.0
+servers:
+  production:
+    url: demo.nats.io
+    protocol: nats
+channels:
+  user/signedup:
+    subscribe:
+      bindings:
+        nats:
+          x-streamname: testStream
+      operationId: onUserSignup
+      summary: User signup notification
+      message:
+        payload:
+          type: object
+          properties:
+            userSingnedUp:
+              type: string
+            userID: 
+              type: number
+            timestamp: 
+              type: string
+    publish:
+      bindings:
+        nats:
+          x-streamname: testStream
+      operationId: userSignedUp
+      summary: send welcome email to user
+      message:
+        payload: 
+          type: object
+          properties:
+            userSingnedUp:
+              type: string
+            userID: 
+              type: number
+            timestamp: 
+              type: string
+  user/buy:
+    subscribe:
+      bindings:
+        nats:
+          queue: MyQueue
+      operationId: userBought
+      summary: User bought something
+      message:
+        payload:
+          type: object
+          properties:
+            userBought:
+              type: string
+            quantity: 
+              type: number
+            timestamp:
+              type: string
+    publish:
+      bindings:
+        nats:
+          queue: MyQueue
+      operationId: onUserBought
+      summary: send email to user
+      message:
+        payload:
+          type: object
+          properties:
+            userBought:
+              type: string
+            quantity:
+              type: number
+            credit: 
+              type: boolean
+  user/sell:
+    subscribe:
+      operationId: userSold
+      summary: User sold something
+      message:
+        payload:
+          type: object
+          properties:
+            soldItem:
+              type: string
+            timestamp: 
+              type: string
+    publish:
+      operationId: onUserSold
+      summary: send email to user
+      message:
+        payload:
+          type: object
+          properties:
+            soldItem:
+              type: string
+            timestamp: 
+              type: string

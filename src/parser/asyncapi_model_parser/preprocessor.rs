@@ -1,14 +1,13 @@
-use crate::parser::common::validate_identifier_string;
 use serde_json::json;
 use std::{collections::HashSet, panic};
 
-pub fn resolve_json_path(json: serde_json::Value, path: &str) -> serde_json::Value {
-    let parts = path.split('/').collect::<Vec<&str>>();
-    let mut current_json = json;
-    for part in parts {
-        current_json = current_json[part].clone();
-    }
-    current_json
+use crate::parser::common::{self, validate_identifier_string};
+
+pub fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
+    let with_message_names = fill_message_and_payload_names(spec.clone(), spec, false, false, None);
+    let resolved_refs = resolve_refs(with_message_names.clone(), with_message_names);
+    let mut seen = HashSet::new();
+    sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen)
 }
 
 pub fn sanitize_operation_ids_and_check_duplicate(
@@ -69,7 +68,7 @@ pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> se
             for (key, value) in map {
                 if key == "$ref" {
                     if let serde_json::Value::String(string_val) = value {
-                        let correct_json = resolve_json_path(
+                        let correct_json = common::resolve_json_path(
                             root_json.clone(),
                             string_val.trim_start_matches("#/"),
                         );
