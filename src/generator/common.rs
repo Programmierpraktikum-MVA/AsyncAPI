@@ -18,9 +18,8 @@ macro_rules! cargo_command {
         }
     };
 }
-
+/// checks if project with name already exists, if yes asks for permission to overwrite
 pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
-    //check if project with name already exists, if yes ask for permission to overwrite
     if output_path.exists() {
         let warn_message = format!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.",project_title);
         println!("{}", warn_message);
@@ -41,7 +40,7 @@ pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     }
 }
 
-/// takes an embedded `template` path, renders it with context reference and writes to output file
+/// takes an embedded `template_path`, renders it with context reference and writes to output file
 pub fn embedded_template_render_write(
     template_path: &str,
     context_ref: impl Into<gtmpl::Value>,
@@ -98,7 +97,8 @@ fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clo
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
 }
-
+/// renders and writes all templates in `template_file_paths` to `output_path`
+/// if file has `.go` extension it will be changed to `.rs`
 pub fn write_multiple_embedded_templates<'a>(
     context_ref: &TemplateContext,
     output_path: &Path,
