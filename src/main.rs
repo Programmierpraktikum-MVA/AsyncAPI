@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{check_for_overwrite, generate_models_folder, write_multiple_embedded_templates},
+    generator::{check_for_overwrite, generate_models_folder, render_write_all_embedded_templates},
     utils::append_file_to_file,
 };
 use clap::Parser;
@@ -17,6 +17,21 @@ use std::{path::Path, process::Command};
 #[derive(RustEmbed)]
 #[folder = "./templates"]
 struct Templates;
+
+impl Templates {
+    pub fn get_str(file_path: &str) -> Option<String> {
+        let file = match Self::get(file_path) {
+            Some(file) => file,
+            None => return None,
+        };
+
+        let result = match std::str::from_utf8(file.data.as_ref()) {
+            Ok(file) => file,
+            Err(_) => return None,
+        };
+        Some(result.to_string())
+    }
+}
 
 fn main() {
     let args = cli::Args::parse();
@@ -53,26 +68,9 @@ fn main() {
         }
     };
 
-    check_for_overwrite(output_path, title);
+    //check_for_overwrite(output_path, title);
 
-    write_multiple_embedded_templates(
-        &async_config,
-        output_path,
-        [
-            "src/main.go",
-            "src/handler.go",
-            "src/cli.go",
-            "Readme.md",
-            ".env",
-            "src/utils/mod.go",
-            "src/utils/streams.go",
-            "src/utils/common.go",
-            "src/config/mod.go",
-        ]
-        .into_iter(),
-    );
-
-    generate_models_folder(&async_config, output_path);
+    render_write_all_embedded_templates(&async_config, output_path);
 
     println!("🚀 File generation finished, adding dependencies...");
 
@@ -80,12 +78,13 @@ fn main() {
     cargo_command!("init", "--bin", output_path);
     // runs cargo format on path
     cargo_command!("fmt", "--", output_path.join("src/main.rs"));
+
     // add dependencies
-    append_file_to_file(
-        template_path.join("dependencies.toml"),
-        output_path.join("Cargo.toml"),
-    )
-    .unwrap();
+    // append_file_to_file(
+    //     template_path.join("dependencies.toml"),
+    //     output_path.join("Cargo.toml"),
+    // )
+    // .unwrap();
     // cargo fix, mostly for cleaning unused imports
     cargo_command!("fix", "--bin", output_path, "--allow-dirty");
 

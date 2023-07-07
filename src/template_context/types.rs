@@ -54,9 +54,20 @@ pub struct SimplifiedMessage {
 //     pub struct_names: Vec<String>,
 //     // pub multiple_payload_enum: Option<MultiStructEnum>,
 // }
-
+/// FIXME: these are just a quick workaround until gtmpl::Value supports `From<impl Serialize> for gtmpl::Value`
 impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
     fn from(value: &TemplateContext<'a>) -> Self {
+        let json_value: serde_json::Value = serde_json::to_value(value).unwrap();
+        serde_value_to_gtmpl_value(&json_value)
+    }
+}
+impl Into<gtmpl::Value> for SimplifiedOperation {
+    fn into(self) -> gtmpl::Value {
+        gtmpl::Value::from(self)
+    }
+}
+impl From<&SimplifiedOperation> for gtmpl::Value {
+    fn from(value: &SimplifiedOperation) -> Self {
         let json_value: serde_json::Value = serde_json::to_value(value).unwrap();
         serde_value_to_gtmpl_value(&json_value)
     }

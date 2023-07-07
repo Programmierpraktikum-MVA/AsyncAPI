@@ -1,8 +1,13 @@
+use crate::template_context::SimplifiedOperation;
+use crate::utils::write_to_path_create_dir;
 use crate::{generator::template_functions::TEMPLATE_FUNCTIONS, Templates};
 use crate::{template_context::TemplateContext, utils};
 use gtmpl::Context;
-use rust_embed::EmbeddedFile;
+use std::fs::OpenOptions;
+use std::io::{self, Error, Write};
 use std::path::Path;
+
+use super::generate_models_folder;
 
 /// runs cargo command with options
 /// Example: ` cargo_command!("init","--bin","path"); `
@@ -40,30 +45,13 @@ pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     }
 }
 
-/// takes an embedded `template_path`, renders it with context reference and writes to output file
-pub fn embedded_template_render_write(
-    template_path: &str,
-    context_ref: impl Into<gtmpl::Value>,
-    output_path: &Path,
-) {
-    let template: EmbeddedFile = match Templates::get(template_path) {
-        Some(template) => template,
-        None => {
-            eprintln!("❌ Error reading template");
-            std::process::exit(1);
-        }
-    };
-    let template = std::str::from_utf8(template.data.as_ref()).unwrap();
-    template_render_write(template, context_ref, output_path)
-}
-
-/// takes a `template`, renders it with context reference and writes to output file
-pub fn template_render_write(
+/// takes a `template` as **NOT THE template PATH**, renders it with context reference and writes to output file
+pub fn render_write_template(
     template: impl Into<String>,
-    context_ref: impl Into<gtmpl::Value>,
+    context: impl Into<gtmpl::Value>,
     output_path: &Path,
 ) {
-    let mut render = match render_template(template, context_ref, TEMPLATE_FUNCTIONS) {
+    let mut render = match render_template(template, context, TEMPLATE_FUNCTIONS) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -97,26 +85,73 @@ fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clo
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
 }
-/// renders and writes all templates in `template_file_paths` to `output_path`
+
+/// renders and writes all templates in `template_file_paths` to `output_path`/`template_file_path`
 /// if file has `.go` extension it will be changed to `.rs`
-pub fn write_multiple_embedded_templates<'a>(
-    context_ref: &TemplateContext,
-    output_path: &Path,
-    template_file_paths: impl Iterator<Item = &'a str>,
-) {
-    for template_file_path in template_file_paths {
-        if template_file_path.ends_with(".go") {
-            embedded_template_render_write(
-                template_file_path,
-                context_ref,
-                &output_path.join(template_file_path).with_extension("rs"),
-            );
-        } else {
-            embedded_template_render_write(
-                template_file_path,
-                context_ref,
-                &output_path.join(template_file_path),
-            );
+pub fn render_write_all_embedded_templates(context: &TemplateContext, output_path: &Path) {
+    for template_path in Templates::iter() {
+        if let Some(template) = Templates::get_str(&template_path) {
+            let seperate_files = separate_files(
+                template_path.as_ref(),
+                &template,
+                context,
+                &output_path
+                    .join(template_path.as_ref())
+                    .parent()
+                    .unwrap_or(Path::new("")),
+            )
+            .unwrap();
+            if seperate_files {
+            } else {
+                render_write_template(
+                    template,
+                    context,
+                    &output_path.join(template_path.as_ref()).with_extension(""),
+                );
+            }
         }
     }
+}
+
+/// checks if files should be seperatly rendered
+/// if yes -> renders them
+/// else returns false
+fn separate_files(
+    template_path: &str,
+    template_str: &str,
+    context: &TemplateContext,
+    output_dir: &Path,
+) -> Result<bool, Error> {
+    if template_path.contains("$$handler$$") {
+        render_write_separate_handler(&context.subscribe_channels, template_str, output_dir)?;
+        return Ok(true);
+    }
+    if template_path.contains("$$producer$$") {
+        render_write_separate_handler(&context.publish_channels, template_str, output_dir)?;
+        return Ok(true);
+    }
+    if template_path.contains("$$model$$") {
+        dbg!(output_dir);
+        generate_models_folder(template_str, context, output_dir);
+        return Ok(true);
+    }
+    Ok(false)
+}
+
+/// renders `template_str` and writes it to different file for each `contexts` iteration
+fn render_write_separate_handler(
+    contexts: &Vec<(&String, SimplifiedOperation)>,
+    template_str: impl Into<String> + Copy,
+    output_dir: &Path,
+) -> Result<(), Error> {
+    // render separate files
+    for (_, context) in contexts {
+        let output_path = output_dir
+            .join(context.unique_id.clone())
+            .with_extension("rs");
+        let render = render_template(template_str, context, TEMPLATE_FUNCTIONS)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        write_to_path_create_dir(&render, &output_path)?;
+    }
+    Ok(())
 }

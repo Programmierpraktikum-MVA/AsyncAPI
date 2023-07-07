@@ -9,6 +9,7 @@ pub fn write_to_path_create_dir(content: &str, path: &Path) -> Result<(), Error>
     let mut out_file = File::create(path)?;
     out_file.write_all(content.as_bytes())
 }
+
 /// reads source file and appends its contents to destination file
 pub fn append_file_to_file(
     source_path: impl AsRef<Path>,
