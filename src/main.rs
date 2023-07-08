@@ -7,13 +7,12 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{check_for_overwrite, generate_models_folder, write_multiple_templates},
+    generator::{check_for_overwrite, generate_models_folder, write_multiple_embedded_templates},
     utils::append_file_to_file,
 };
 use clap::Parser;
 use rust_embed::RustEmbed;
-use std::path::Path;
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 #[derive(RustEmbed)]
 #[folder = "./templates"]
@@ -56,10 +55,10 @@ fn main() {
 
     check_for_overwrite(output_path, title);
 
-    write_multiple_templates(
+    write_multiple_embedded_templates(
         &async_config,
         output_path,
-        &[
+        [
             "src/main.go",
             "src/handler.go",
             "src/cli.go",
@@ -69,7 +68,8 @@ fn main() {
             "src/utils/streams.go",
             "src/utils/common.go",
             "src/config/mod.go",
-        ],
+        ]
+        .into_iter(),
     );
 
     generate_models_folder(&async_config, output_path);

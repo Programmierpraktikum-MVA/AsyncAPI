@@ -1,7 +1,8 @@
 use crate::{generator::template_functions::TEMPLATE_FUNCTIONS, Templates};
 use crate::{template_context::TemplateContext, utils};
 use gtmpl::Context;
-use std::path::{Path, PathBuf};
+use rust_embed::EmbeddedFile;
+use std::path::Path;
 
 /// runs cargo command with options
 /// Example: ` cargo_command!("init","--bin","path"); `
@@ -17,9 +18,8 @@ macro_rules! cargo_command {
         }
     };
 }
-
+/// checks if project with name already exists, if yes asks for permission to overwrite
 pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
-    //check if project with name already exists, if yes ask for permission to overwrite
     if output_path.exists() {
         let warn_message = format!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.",project_title);
         println!("{}", warn_message);
@@ -40,25 +40,30 @@ pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     }
 }
 
-/// reads template from path renders it with context reference and writes to output file
-pub fn template_render_write(
+/// takes an embedded `template_path`, renders it with context reference and writes to output file
+pub fn embedded_template_render_write(
     template_path: &str,
     context_ref: impl Into<gtmpl::Value>,
-    output_path: &PathBuf,
+    output_path: &Path,
 ) {
-    let template = match Templates::get(template_path) {
+    let template: EmbeddedFile = match Templates::get(template_path) {
         Some(template) => template,
         None => {
             eprintln!("❌ Error reading template");
             std::process::exit(1);
         }
     };
-    let template = template.data.as_ref();
-    let mut render = match render_template(
-        std::str::from_utf8(template).unwrap(),
-        context_ref,
-        TEMPLATE_FUNCTIONS,
-    ) {
+    let template = std::str::from_utf8(template.data.as_ref()).unwrap();
+    template_render_write(template, context_ref, output_path)
+}
+
+/// takes a `template`, renders it with context reference and writes to output file
+pub fn template_render_write(
+    template: impl Into<String>,
+    context_ref: impl Into<gtmpl::Value>,
+    output_path: &Path,
+) {
+    let mut render = match render_template(template, context_ref, TEMPLATE_FUNCTIONS) {
         Ok(render) => render,
         Err(e) => {
             eprintln!("❌ Error rendering template: {}", e);
@@ -92,21 +97,22 @@ fn render_template<T: Into<String>, C: Into<gtmpl::Value>, F: Into<String> + Clo
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)).map_err(Into::into)
 }
-
-pub fn write_multiple_templates(
+/// renders and writes all templates in `template_file_paths` to `output_path`
+/// if file has `.go` extension it will be changed to `.rs`
+pub fn write_multiple_embedded_templates<'a>(
     context_ref: &TemplateContext,
     output_path: &Path,
-    template_file_paths: &[&str],
+    template_file_paths: impl Iterator<Item = &'a str>,
 ) {
     for template_file_path in template_file_paths {
         if template_file_path.ends_with(".go") {
-            template_render_write(
+            embedded_template_render_write(
                 template_file_path,
                 context_ref,
                 &output_path.join(template_file_path).with_extension("rs"),
             );
         } else {
-            template_render_write(
+            embedded_template_render_write(
                 template_file_path,
                 context_ref,
                 &output_path.join(template_file_path),

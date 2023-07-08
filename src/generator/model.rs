@@ -1,4 +1,4 @@
-use super::template_render_write;
+use super::embedded_template_render_write;
 use crate::template_context::TemplateContext;
 use crate::{parser::common::validate_identifier_string, utils::write_to_path_create_dir};
 
@@ -11,7 +11,7 @@ pub fn generate_models_folder(async_config: &TemplateContext, output_path: &Path
         .iter()
         .for_each(|message_model| {
             if !message_model.model_definition.is_empty() {
-                template_render_write(
+                embedded_template_render_write(
                     "src/model.go",
                     message_model.clone(),
                     &output_path.join(format!(
