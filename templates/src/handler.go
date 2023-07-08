@@ -2,7 +2,8 @@ use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
 use crate::{publish_message,stream_publish_message,model::*,config::*};
 use std::time;
-
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
 
 
 {{ range .publish_channels  }}
@@ -18,6 +19,8 @@ use std::time;
     {{end}}
     {{if $isStream}}
         pub fn stream_handler_{{ (index . 1).unique_id }}(message: jetstream::Message, client: &Client) {
+            let tracer = global::tracer("stream_handler_{{ (index . 1).unique_id }}");
+            let _span = tracer.start("{{ (index . 1).unique_id }}_stream_handler");
             {{ range (index . 1).messages }}
                 {{ if .payload}}
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
@@ -46,6 +49,8 @@ use std::time;
         }
     {{else}}
         pub async fn handler_{{ (index . 1).unique_id }}(message: Message, client: &Client) {
+            let tracer = global::tracer("handler_{{ (index . 1).unique_id }}");
+            let _span = tracer.start("{{ (index . 1).unique_id }}_handler");
             {{ range (index . 1).messages }}
                 {{ if .payload}}
                 match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.payload.as_ref()) {
@@ -93,6 +98,8 @@ use std::time;
     {{ if $isStream }}
         {{ range (index . 1).messages }}
             pub async fn stream_producer_{{ (index $channel 1).unique_id }}(context_stream: &Context, payload : {{ if .payload}} {{ .payload.struct_reference }} {{ else }} () {{ end }}) { //context instead of client
+                let tracer = global::tracer("{{ (index $channel 1).unique_id }}_stream_producer");
+                let _span = tracer.start("stream_producer_{{ (index $channel 1).unique_id }}");
                 let subject = get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
@@ -111,6 +118,8 @@ use std::time;
     {{ else }}
         {{ range (index . 1).messages }}
             pub async fn producer_{{ (index $channel 1).unique_id }}(client: &Client, payload: {{ if .payload }} {{.payload.struct_reference}} {{else}} () {{end}}) {
+                let tracer = global::tracer("{{ (index $channel 1).unique_id }}_producer");
+                let _span = tracer.start("producer_{{ (index $channel 1).unique_id }}");
                 let subject = get_env().get("{{ (index $channel 1).unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
