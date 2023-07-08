@@ -61,11 +61,6 @@ impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
         serde_value_to_gtmpl_value(&json_value)
     }
 }
-impl Into<gtmpl::Value> for SimplifiedOperation {
-    fn into(self) -> gtmpl::Value {
-        gtmpl::Value::from(self)
-    }
-}
 impl From<&SimplifiedOperation> for gtmpl::Value {
     fn from(value: &SimplifiedOperation) -> Self {
         let json_value: serde_json::Value = serde_json::to_value(value).unwrap();

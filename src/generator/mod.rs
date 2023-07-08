@@ -1,5 +1,7 @@
 mod common;
-pub use common::{check_for_overwrite, render_write_all_embedded_templates};
+pub use common::{
+    check_for_overwrite, render_write_all_embedded_templates, render_write_all_fs_templates,
+};
 
 mod model;
 pub use model::generate_models_folder;
