@@ -1,7 +1,6 @@
 mod common;
 pub use common::{
-    check_for_overwrite, embedded_template_render_write, template_render_write,
-    write_multiple_embedded_templates,
+    check_for_overwrite, render_write_all_embedded_templates, render_write_all_fs_templates,
 };
 
 mod model;

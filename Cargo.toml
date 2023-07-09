@@ -20,4 +20,5 @@ clap = {version = "4.3.0", features = ["derive"]}
 jsonschema = "0.17.0"
 proc-macro2 = "1.0.59"
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
+walkdir = "2.3.3"
 

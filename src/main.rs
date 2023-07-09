@@ -7,8 +7,9 @@ mod utils;
 
 use crate::{
     asyncapi_model::AsyncAPI,
-    generator::{check_for_overwrite, generate_models_folder, write_multiple_embedded_templates},
-    utils::append_file_to_file,
+    generator::{
+        check_for_overwrite, render_write_all_embedded_templates, render_write_all_fs_templates,
+    },
 };
 use clap::Parser;
 use rust_embed::RustEmbed;
@@ -24,7 +25,7 @@ fn main() {
     let specfile_path = Path::new(&args.specification);
     println!("📄 Using specification file {:?}", specfile_path);
 
-    let template_path = Path::new("./templates/");
+    let template_dir = Path::new("./user_templates/");
 
     let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
         Ok(spec) => spec,
@@ -41,7 +42,7 @@ fn main() {
     let output = args.output;
     let output_path = &Path::new(&output).join(title.replace(' ', "_").to_lowercase());
     println!("📂 Output path: {:?}", output_path);
-
+    // simplify async api spec to template context
     let async_config = match template_context::create_template_context(&spec) {
         Ok(async_config) => async_config,
         Err(e) => {
@@ -49,42 +50,15 @@ fn main() {
             std::process::exit(1);
         }
     };
-
     check_for_overwrite(output_path, title);
-
-    write_multiple_embedded_templates(
-        &async_config,
-        output_path,
-        [
-            "src/main.go",
-            "src/handler.go",
-            "src/cli.go",
-            "Readme.md",
-            ".env",
-            "src/utils/mod.go",
-            "src/utils/streams.go",
-            "src/utils/common.go",
-            "src/config/mod.go",
-            "src/tracing/mod.go",
-            "src/logger/mod.go",
-        ]
-        .into_iter(),
-    );
-
-    generate_models_folder(&async_config, output_path);
-
-    println!("🚀 File generation finished, adding dependencies...");
 
     // make output a compilable project in output_path
     cargo_command!("init", "--bin", output_path);
-    // add dependencies
-    append_file_to_file(
-        template_path.join("dependencies.toml"),
-        output_path.join("Cargo.toml"),
-    )
-    .unwrap();
 
-    println!("✨ Successfully added dependencies, formatting code...");
+    render_write_all_embedded_templates(&async_config, output_path);
+    render_write_all_fs_templates(template_dir, &async_config, output_path);
+    println!("🚀 File generation finished, adding dependencies...");
+
     // runs cargo format on path
     cargo_command!("fmt", "--", output_path.join("src/main.rs"));
     // cargo fix, mostly for cleaning unused imports
