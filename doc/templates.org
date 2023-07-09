@@ -1,0 +1,54 @@
+#+title: Templates
+#+date: [2023-07-06 Thu 21:25]
+
+* Writing your own templates
+- Any templates that in the templates folder at compilation time will be embedded in the compiled binary.
+- If you only have the binary you can put templates in the folder ´user-templates´.
+  If a file from the ´user-templates´ folder has the same path as an embedded template, only the template from ´user-template´ will be rendered.
+- the last file extension will be removed e.g: ´file.rs.go´ will be rendered to ´file.rs´.
+** What fields are available inside templates?
+- Any of these fields will be accessible:
+#+begin_src rust
+pub struct TemplateContext<'a> {
+    pub title: &'a String,
+    pub description: &'a Option<String>,
+    pub server: &'a Server,
+    pub subscribe_channels: Vec<(&'a String, SimplifiedOperation)>,
+    pub publish_channels: Vec<(&'a String, SimplifiedOperation)>,
+    pub model: Model,
+}
+
+pub struct Model {
+    pub message_models: Vec<RustSchemaRepresentation>,
+    // pub enums: Vec<MultiStructEnum>,
+}
+
+pub struct SimplifiedOperation {
+    pub unique_id: String,
+    pub original_operation: Operation,
+    // array, da es eine oder mehrere messages geben kann
+    pub messages: Vec<SimplifiedMessage>,
+    // pub multiple_messages_enum: Option<MultiStructEnum>,
+}
+
+pub struct MultiStructEnum {
+    pub unique_id: String,
+    pub messages: Vec<SimplifiedMessage>,
+    pub struct_definition: String,
+}
+
+pub struct SimplifiedMessage {
+    pub unique_id: String,
+    pub original_message: Message,
+    pub payload: Option<RustSchemaRepresentation>,
+}
+#+end_src
+ - for more information about the fields available from these structs please refer to: [[https://github.com/Programmierpraktikum-MVA/AsyncAPI/tree/main/src/asyncapi_model]]
+** Render to separate files
+- It is possible to generate files for each specific object in your AsyncAPI documentation. For example, you can specify a filename like $$handler$$.rs.go to generate a file for each ´publish_channel´ defined in your AsyncAPI spec.
+  This works with file templates that include the following in their name:
+  - ´$$handler$$´
+  - ´$$producer$$´
+  - ´$$model$$´
+** Functions available inside the templates
+-
