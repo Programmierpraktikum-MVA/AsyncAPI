@@ -4,6 +4,7 @@ pub static TEMPLATE_FUNCTIONS: &[(&str, Func)] = &[
     ("key_exists", key_exists as Func),
     ("campel_to_snake_case", camel_to_snake_case as Func),
     ("to_lower", to_lower as Func),
+    ("replace", replace as Func),
 ];
 
 /// TODO: descriptive comment needed about what function does!!
@@ -81,5 +82,12 @@ gtmpl_fn!(
     /// converts an `input` to lowercase
     fn to_lower(input: String) -> Result<String, FuncError> {
         Ok(input.to_lowercase())
+    }
+);
+
+gtmpl_fn!(
+    /// converts an `input` to lowercase
+    fn replace(input: String, from: String, to: String) -> Result<String, FuncError> {
+        Ok(input.replace(&from, &to))
     }
 );

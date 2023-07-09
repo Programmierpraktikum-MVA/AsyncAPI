@@ -1,5 +1,5 @@
 [package]
-name = "{{ to_lower .title }}"
+name = "{{ to_lower (replace .title " " "_") }}"
 version = "0.1.0"
 edition = "2021"
 
@@ -19,3 +19,5 @@ log = "0.4.0"
 env_logger = "0.10.0"
 cargo_metadata = "0.15.4"
 warp = "0.3.5"
+lazy_static = "1.4"
+
