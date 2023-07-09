@@ -21,3 +21,5 @@ anyhow = "1.0.71"
 reqwest = "0.11.18"
 wasmtime = "9.0.3"
 opa-wasm = { git = "https://github.com/matrix-org/rust-opa-wasm.git" }
+cargo_metadata = "0.15.4"
+warp = "0.3.5"
