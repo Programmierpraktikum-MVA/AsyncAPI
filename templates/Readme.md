@@ -12,6 +12,8 @@ Open the documentation with the following command:
 ## Tracing
 The generated microservice uses OpenTelemetry for tracing. Each handler function is wrapped in a span, which can be modified to fit your tracing needs. 
 
+Enable the tracer in the `.env` file by setting `TRACING_ENABLED = true`.
+
 The default exporter is the Jaeger exporter. The default configuration is set to export to a Jaeger instance running on `localhost:6831`.
 
 Jaeger can be started in Docker using the following command:
