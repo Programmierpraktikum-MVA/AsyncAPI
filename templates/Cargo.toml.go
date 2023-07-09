@@ -17,3 +17,7 @@ opentelemetry = { version = "*", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "*", features = ["rt-tokio", "isahc_collector_client"] }
 log = "0.4.0"
 env_logger = "0.10.0"
+anyhow = "1.0.71"
+reqwest = "0.11.18"
+wasmtime = "9.0.3"
+opa-wasm = { git = "https://github.com/matrix-org/rust-opa-wasm.git" }

@@ -1,7 +1,8 @@
 mod handler;
 mod model;
 mod utils;
-mod cli; 
+mod cli;
+mod policy;
 use clap::Parser;
 use crate::cli::*;
 use utils::*;
