@@ -45,7 +45,7 @@ pub struct SimplifiedMessage {
 #+end_src
  - for more information about the fields available from these structs please refer to: [[https://github.com/Programmierpraktikum-MVA/AsyncAPI/tree/main/src/asyncapi_model]]
 ** Render to separate files
-- It is possible to generate files for each specific object in your AsyncAPI documentation. For example, you can specify a filename like $$handler$$.rs.go to generate a file for each ~publish_channel~ defined in your AsyncAPI spec.
+- It is possible to generate files for each specific object in your AsyncAPI documentation. For example, you can specify a filename like ~$$handler$$.rs.go~ to generate a file for each ~publish_channel~ defined in your AsyncAPI spec.
   This works with file templates that include the following in their name:
   - ~$$handler$$~
   - ~$$producer$$~
