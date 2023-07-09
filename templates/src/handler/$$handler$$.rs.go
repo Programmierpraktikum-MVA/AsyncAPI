@@ -1,8 +1,9 @@
-	use async_nats::{Client, Message, jetstream};
-	use async_nats::jetstream::Context;
-	use crate::{publish_message,stream_publish_message,model::*,config::*};
-	use std::time;
-
+use async_nats::{Client, Message, jetstream};
+use async_nats::jetstream::Context;
+use crate::{publish_message,stream_publish_message,model::*,config::*};
+use std::time;
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
     {{ $isStream := false }}
     {{ $channel := . }}
 
@@ -18,7 +19,9 @@
     {{ if $isStream }}
         {{ range .messages }}
             pub async fn stream_producer_{{ .unique_id }}(context_stream: &Context, payload : {{ if .payload}} {{ .payload.struct_reference }} {{ else }} () {{ end }}) { //context instead of client
-                let subject = get_env().get("{{ .unique_id }}_SUBJECT").unwrap().clone();
+    let tracer = global::tracer("{{ (index $channel 1).unique_id }}_stream_producer");
+        let _span = tracer.start("stream_producer_{{ (index $channel 1).unique_id }}");
+        let subject = get_env().get("{{ .unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
@@ -34,9 +37,11 @@
             }
         {{end}}
     {{ else }}
-        {{ range .messages }}
-            pub async fn producer_{{ .unique_id }}(client: &Client, payload: {{ if .payload }} {{.payload.struct_reference}} {{else}} () {{end}}) {
-                let subject = get_env().get("{{ .unique_id }}_SUBJECT").unwrap().clone();
+    {{ range .messages }}
+    pub async fn producer_{{ .unique_id }}(client: &Client, payload: {{ if .payload }} {{.payload.struct_reference}} {{else}} () {{end}}) {
+    let tracer = global::tracer("{{ (index $channel 1).unique_id }}_producer");
+    let _span = tracer.start("producer_{{ (index $channel 1).unique_id }}");
+    let subject = get_env().get("{{ .unique_id }}_SUBJECT").unwrap().clone();
                 {{ if .payload }}
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,

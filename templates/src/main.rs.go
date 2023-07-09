@@ -10,6 +10,7 @@ use async_nats::jetstream::{self};
 use std::{collections::HashMap};
 use dotenv::dotenv;
 mod config;
+mod tracing;
 
 
 #[tokio::main]
@@ -17,8 +18,13 @@ async fn main() -> Result<(), async_nats::Error> {
     let env: HashMap<String,String> = config::get_env();
     let args = cli::Args::parse();
 
+    let tracing_enabled: bool = env.get("TRACING_ENABLED").unwrap().parse().unwrap();
+    if (tracing_enabled) {
+        // Initialize Jaeger Tracer
+        let tracer = tracing::init_jaeger_tracer("{{ .title}}");
+    }
+
     let client = async_nats::connect(env.get("SERVER_URL").unwrap()).await?;
-    handle_cli(&client, &args.command, &args.message).await?;
 
     {{ range .publish_channels }}
         {{ if (index . 1).original_operation.bindings }}
@@ -35,6 +41,8 @@ async fn main() -> Result<(), async_nats::Error> {
             let mut {{ (index . 1).unique_id }} = client.subscribe(env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into()).await?;
         {{end}}
     {{end}}
+
+    handle_cli(&client, &args.command, &args.message).await?;
 
 
     tokio::join!(
@@ -57,6 +65,10 @@ async fn main() -> Result<(), async_nats::Error> {
     {{ end }}
     );
 
+    if (tracing_enabled) {
+        // Shutdown Jaeger Tracer
+        tracing::shutdown_tracer_provider();
+    }
     println!("fin");
     Ok(())
 }

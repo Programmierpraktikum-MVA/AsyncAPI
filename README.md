@@ -18,14 +18,13 @@ Crustagen is a Rust code generator that takes AsyncAPI specifications as input a
 
 - Rust 1.70 or later.
 - Cargo (comes with Rust).
-- AsyncAPI Specification (version 2.1.0 supported currently).
 
 ## Installation
 
 Clone and build the Crustagen project:
 
 ```sh
-git clone https://github.com/yourusername/crustagen.git
+git clone https://github.com/Programmierpraktikum-MVA/AsyncAPI.git
 cd crustagen
 just install # Alternatively, you can use 'cargo build --release'
 ```

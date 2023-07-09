@@ -1,8 +1,10 @@
+use async_nats::{Client, Message, jetstream};
+use async_nats::jetstream::Context;
+use crate::{publish_message,stream_publish_message,model::*,config::*};
+use std::time;
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
 
-	use async_nats::{Client, Message, jetstream};
-	use async_nats::jetstream::Context;
-	use crate::{publish_message,stream_publish_message,model::*,config::*};
-	use std::time;
 
     {{ $isStream := false }}
 
@@ -16,7 +18,9 @@
     {{end}}
     {{if $isStream}}
         pub fn stream_handler_{{ .unique_id }}(message: jetstream::Message, client: &Client) {
-            {{ range .messages }}
+        let tracer = global::tracer("stream_handler_{{ (index . 1).unique_id }}");
+        let _span = tracer.start("{{ (index . 1).unique_id }}_stream_handler");
+        {{ range .messages }}
                 {{ if .payload}}
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
                         Ok(deserialized_message) => {
@@ -44,7 +48,9 @@
         }
     {{else}}
         pub async fn handler_{{ .unique_id }}(message: Message, client: &Client) {
-            {{ range .messages }}
+    let tracer = global::tracer("handler_{{ (index . 1).unique_id }}");
+            let _span = tracer.start("{{ (index . 1).unique_id }}_handler");
+    {{ range .messages }}
                 {{ if .payload}}
                 match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.payload.as_ref()) {
                     Ok(deserialized_message) => {
