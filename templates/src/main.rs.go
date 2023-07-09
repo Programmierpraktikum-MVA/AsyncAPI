@@ -1,7 +1,8 @@
 mod handler;
 mod model;
 mod utils;
-mod cli; 
+mod cli;
+mod warp_server;
 use clap::Parser;
 use crate::cli::*;
 use utils::*;
@@ -15,6 +16,8 @@ mod logger;
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
+    //start warp server
+    tokio::spawn(warp_server::server());
     // Load .env file
     let env: HashMap<String,String> = config::get_env();
 
