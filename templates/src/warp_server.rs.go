@@ -20,11 +20,7 @@ async fn metamessage() -> Result<impl warp::Reply, warp::Rejection>{
         .unwrap();
 
     let root = meta.root_package().unwrap();
-    //let option = root.metadata["my"]["option"].as_str().unwrap();
-    //let version = &root.version;
-
-    //println!("sent root metadata");
-    let root =  serde_json::to_string(&root).unwrap();
+    let root = serde_json::to_string(&root).unwrap();
     Ok(root)
 }
 
