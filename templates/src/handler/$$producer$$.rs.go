@@ -25,7 +25,7 @@ use log::{debug, warn};
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
                         Ok(deserialized_message) => {
                             debug!("Received message {:#?}", deserialized_message);
-                            opa_eval(message);
+                            let policy_reply = opa_eval(message);
                             // TODO: Replace this with your own handler code
                             {{ if eq .payload.model_type "enum"}}
                                 match deserialized_message {
