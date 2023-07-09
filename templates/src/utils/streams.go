@@ -3,6 +3,7 @@ use async_nats::Client;
 use async_nats::jetstream::consumer::{pull::{Config}, Consumer};
 use std::time::Duration;
 use futures::StreamExt;
+use log::debug;
 
 pub async fn stream_publish_message(client: &Context, channel: &str, payload: &str) {
 	let owned_payload = payload.to_owned().into(); // Convert to Bytes
@@ -10,7 +11,7 @@ pub async fn stream_publish_message(client: &Context, channel: &str, payload: &s
 		.publish(channel.to_string(), owned_payload)
 		.await
 		.unwrap();
-	println!("sent");
+	debug!("Message published to channel: {}", channel);
 }
 
 
@@ -25,13 +26,12 @@ pub async fn stream_listen_for_message(
         while let Some(message) = messages.next().await {
             let message = message?;
             handler(message, client);
-            println!(
+            debug!(
                 "Message received by Subscriber: {:?}",
                 sub.cached_info().name
             ); // if you show sub its a mess, is now a Context
         }
     }
-    Ok(())
 }
 
 

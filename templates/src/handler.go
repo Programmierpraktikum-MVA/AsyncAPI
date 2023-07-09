@@ -1,9 +1,9 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
 use crate::{publish_message,stream_publish_message,model::*,config::*};
-use std::time;
 use opentelemetry::global;
 use opentelemetry::trace::Tracer;
+use log::{debug, warn};
 
 
 {{ range .publish_channels  }}
@@ -25,7 +25,7 @@ use opentelemetry::trace::Tracer;
                 {{ if .payload}}
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
                         Ok(deserialized_message) => {
-                            println!("Received message {:#?}", deserialized_message);
+                            debug!("Received message {:#?}", deserialized_message);
                             // TODO: Replace this with your own handler code
                             {{ if eq .payload.model_type "enum"}}
                                 match deserialized_message {
@@ -33,14 +33,14 @@ use opentelemetry::trace::Tracer;
                                     {{ range .payload.related_models }}
                                         {{ $enumName }}::{{ .unique_id }}(payload) => {
                                         // TODO: Replace this with your own handler code
-                                        println!("Received message payload {{ .unique_id }} {:?}", payload);
+                                        debug!("Received message payload {{ .unique_id }} {:?}", payload);
                                         }   
                                     {{ end }}
                                 }
                             {{ end }}
                         },
                         Err(_) => {
-                            println!("Failed to deserialize message payload: {{ .unique_id }}\nOriginal message: {:#?}", message);
+                            debug!("Failed to deserialize message payload: {{ .unique_id }}\nOriginal message: {:#?}", message);
                             // TODO: Handle the failed deserialization here
                         },
                     }
@@ -61,17 +61,17 @@ use opentelemetry::trace::Tracer;
                                 {{ range .payload.related_models }}
                                     {{ $enumName }}::{{ .unique_id }}(payload) => {
                                     // TODO: Replace this with your own handler code
-                                    println!("Received message payload {{ .unique_id }} {:?}", payload);
+                                    debug!("Received message payload {{ .unique_id }} {:?}", payload);
                                     }   
                                 {{ end }}
                             }
                         {{else}}
-                            println!("Received message {:#?}", deserialized_message);
+                            debug!("Received message {:#?}", deserialized_message);
                             // TODO: Replace this with your own handler code
                         {{ end }}
                     },
                     Err(_) => {
-                        println!("Failed to deserialize message payload: {{ .unique_id }}\nOriginal message: {:#?}", message);
+                        warn!("Failed to deserialize message payload: {{ .unique_id }}\nOriginal message: {:#?}", message);
                         // TODO: Handle the failed deserialization here
                     },
                 }
@@ -105,7 +105,7 @@ use opentelemetry::trace::Tracer;
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            warn!("Failed to serialize message payload: {{ .payload.struct_reference }}");
                             return;
                         }
                     };
@@ -125,7 +125,7 @@ use opentelemetry::trace::Tracer;
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            warn!("Failed to serialize message payload: {{ .payload.struct_reference }}");
                             return;
                         }
                     };

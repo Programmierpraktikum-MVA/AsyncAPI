@@ -1,5 +1,6 @@
 use async_nats::{Client, Message, Subscriber};
 use futures::StreamExt;
+use log::debug;
 
 pub async fn listen_for_message<'a, F, Fut>(sub: &mut Subscriber, handler: F, client: &'a Client)
 where
@@ -8,7 +9,7 @@ where
 {
     while let Some(message) = sub.next().await {
         handler(message, client).await;
-        println!("Message received by Subscriber: {:?}", sub);
+        debug!("Message received by Subscriber: {:?}", sub);
     }
 }
 
@@ -18,6 +19,6 @@ pub async fn publish_message(client: &Client, channel: &str, payload: &str) {
         .publish(channel.to_string(), owned_payload)
         .await
         .unwrap();
-    println!("sent");
+    debug!("Published message to channel: {}", channel);
 }
 
