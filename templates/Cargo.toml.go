@@ -1,5 +1,5 @@
 [package]
-name = "{{ .title }}"
+name = "{{ to_lower .title }}"
 version = "0.1.0"
 edition = "2021"
 

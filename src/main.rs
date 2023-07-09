@@ -56,12 +56,13 @@ fn main() {
 
     check_for_overwrite(output_path, title);
 
+    // make output a compilable project in output_path
+    cargo_command!("init", "--bin", output_path);
+
     render_write_all_embedded_templates(&async_config, output_path);
     render_write_all_fs_templates(template_dir, &async_config, output_path);
     println!("🚀 File generation finished, adding dependencies...");
 
-    // make output a compilable project in output_path
-    cargo_command!("init", "--bin", output_path);
     // runs cargo format on path
     cargo_command!("fmt", "--", output_path.join("src/main.rs"));
     // cargo fix, mostly for cleaning unused imports
