@@ -28,10 +28,7 @@ fn main() {
     let template_dir = Path::new("./user_templates/");
 
     let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
-        Ok(spec) => {
-            println!("🎉 Specification was parsed successfully!");
-            spec
-        }
+        Ok(spec) => spec,
         Err(e) => {
             eprintln!("❌ Error parsing the specification: {}", e);
             std::process::exit(1);
@@ -65,10 +62,20 @@ fn main() {
     // runs cargo format on path
     cargo_command!("fmt", "--", output_path.join("src/main.rs"));
     // cargo fix, mostly for cleaning unused imports
-    cargo_command!("fix", "--bin", output_path, "--allow-dirty");
+    cargo_command!(
+        "fix",
+        "--manifest-path",
+        output_path.join("Cargo.toml"),
+        "--allow-dirty"
+    );
 
     if args.doc {
         println!("📚 Generating docs...");
         cargo_command!(output_path, "doc", "--no-deps");
     }
+
+    println!(
+        "🎉 Generation finished!\n\n   Run the service using:\n     cd {} && cargo run\n\n   If you are in the generator root, start the service using:\n     just start-service {}\n",
+        output_path.to_string_lossy(), title.replace(' ', "_").to_lowercase()
+    );
 }

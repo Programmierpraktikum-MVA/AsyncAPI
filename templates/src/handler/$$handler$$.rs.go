@@ -4,6 +4,8 @@ use crate::{publish_message,stream_publish_message,model::*,config::*};
 use std::time;
 use opentelemetry::global;
 use opentelemetry::trace::Tracer;
+use log::{debug, warn};
+
     {{ $isStream := false }}
     {{ $channel := . }}
 
@@ -26,7 +28,7 @@ use opentelemetry::trace::Tracer;
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            warn!("Failed to serialize message payload: {{ .payload.struct_reference }}");
                             return;
                         }
                     };
@@ -46,7 +48,7 @@ use opentelemetry::trace::Tracer;
                     let payload = match serde_json::to_string(&payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            println!("Failed to serialize message payload: {{ .payload.struct_reference }}");
+                            warn!("Failed to serialize message payload: {{ .payload.struct_reference }}");
                             return;
                         }
                     };

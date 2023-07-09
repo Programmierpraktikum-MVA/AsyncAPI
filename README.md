@@ -11,6 +11,7 @@ Crustagen is a Rust code generator that takes AsyncAPI specifications as input a
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Limitations](#limitations)
   - [Contribute](#contribute)
   - [License](#license)
 
@@ -25,7 +26,7 @@ Clone and build the Crustagen project:
 
 ```sh
 git clone https://github.com/Programmierpraktikum-MVA/AsyncAPI.git
-cd crustagen
+cd AsyncAPI
 just install # Alternatively, you can use 'cargo build --release'
 ```
 
@@ -34,7 +35,7 @@ just install # Alternatively, you can use 'cargo build --release'
 To generate Rust code from an AsyncAPI specification, use the following `just` command:
 
 ```sh
-just run-generator specfile_path="./example/specs/basic.yaml" output="./output" # Alternatively, you can use 'cargo run -- -s ./example/specs/basic.yaml -o ./output'
+just run example/specs/basic.yaml output # Alternatively, you can use 'cargo run -- -s ./example/specs/basic.yaml -o ./output'
 ```
 
 This will generate a Rust project in the specified output directory.
@@ -42,22 +43,22 @@ This will generate a Rust project in the specified output directory.
 To run the server, navigate to the output directory (replace `{project-id}` with the actual project directory name, the title of the spec) and use the `just` command:
 
 ```sh
-just start-service service_name={project-id} # Alternatively, you can use 'cd output/{project-id} && cargo run'
+just start-service {project-id} # Alternatively, you can use 'cd output/{project-id} && cargo run'
 ```
 
 To view the auto-generated documentation, use the following command:
 
 ```sh
-just generate-service-docs service_name={project-id} # Alternatively, you can use 'cd output/{project-id} && cargo doc --open'
+just service-doc {project-id} # Alternatively, you can use 'cd output/{project-id} && cargo doc --open'
 ```
 
-Remember to replace `{project-id}` with the actual project directory name.
+Remember to replace `{project-id}` with the name of your generated microservice (`title` field from the provided spec).
 
 ## Limitations
 
-- only json payloads are currently supported for automatic deserialization
-- only one server is currently supported and only nats protocol is supported
-- only one message is currently supported per channel, payloads can be choosen freely including anyOf/oneOf/allOf
+- Only json payloads are currently supported for automatic deserialization
+- Only one server is currently supported and only nats protocol is supported
+- Only one message is currently supported per channel, payloads can be choosen freely including anyOf/oneOf/allOf
 
 ## Contribute
 

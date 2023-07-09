@@ -27,7 +27,7 @@ macro_rules! cargo_command {
 /// checks if project with name already exists, if yes asks for permission to overwrite
 pub fn check_for_overwrite(output_path: &Path, project_title: &str) {
     if output_path.exists() {
-        println!("A project with the name {} already exists in the current directory, do you want to overwrite the existing project? \nWARNING: This will delete all files in the directory and all applied. \nType 'y' to continue or anything else to exit.", project_title);
+        println!("\nA project with the name {} already exists in the current directory: {}. Do you want to overwrite it? \n\n❗ WARNING: This will permanently delete all files in the directory! \n\nType 'y' to continue or anything else to exit.", project_title, output_path.to_string_lossy());
         let mut input = String::new();
         match std::io::stdin().read_line(&mut input) {
             Ok(_) => {
