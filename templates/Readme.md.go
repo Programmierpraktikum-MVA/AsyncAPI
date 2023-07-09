@@ -9,6 +9,14 @@ Open the documentation with the following command:
     cargo doc --no-deps --open
 ```
 
+### Testing
+You can use a cli command to send a message directly on a specified channel for testing purposes. Simply use the following command in the root directory of the generated project:
+
+```
+cargo run -- -c destination/channel -m {myMessageJson}
+```
+Note, to run a second server please change the env variable `SERVICE_PORT` to a different port number.
+
 ## Tracing
 The generated microservice uses OpenTelemetry for tracing. Each handler function is wrapped in a span, which can be modified to fit your tracing needs. 
 
