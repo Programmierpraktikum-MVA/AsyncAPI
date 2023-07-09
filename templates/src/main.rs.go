@@ -16,23 +16,24 @@ mod logger;
 
 #[tokio::main]
 async fn main() -> Result<(), async_nats::Error> {
+    // Load .env file
+    config::initialize_env();
+
     //start warp server
     tokio::spawn(warp_server::server());
-    // Load .env file
-    let env: HashMap<String,String> = config::get_env();
 
     // Initialize logger
-    let log_lvl = env.get("LOG_LEVEL").unwrap().parse().unwrap_or("INFO".to_string());
+    let log_lvl = config::get_env("LOG_LEVEL").unwrap().parse().unwrap_or("INFO".to_string());
     logger::init_logger(&log_lvl);
 
     // Initialize tracing
-    let tracing_enabled: bool = env.get("TRACING_ENABLED").unwrap().parse().unwrap();
+    let tracing_enabled: bool = config::get_env("TRACING_ENABLED").unwrap().parse().unwrap();
     if tracing_enabled {
         let _tracer = tracing::init_jaeger_tracer("{{ .title}}");
     }
     
     // Connect to NATS server
-    let nats_url = env.get("SERVER_URL").unwrap();
+    let nats_url = config::get_env("SERVER_URL").unwrap();
     info!("Connecting to a NATS server: {}", nats_url);
     let client = async_nats::connect(nats_url).await?;
 
@@ -40,16 +41,16 @@ async fn main() -> Result<(), async_nats::Error> {
     {{ range .publish_channels }}
         {{ if (index . 1).original_operation.bindings }}
                 {{ if (index . 1).original_operation.bindings.nats.queue }}
-                    let mut {{ (index . 1).unique_id }} = client.queue_subscribe(env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into(),
-                     env.get("{{ (index . 1).unique_id}}_QUEUE").unwrap().into()).await?;
+                    let mut {{ (index . 1).unique_id }} = client.queue_subscribe(config::get_env("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into(),
+                     config::get_env("{{ (index . 1).unique_id}}_QUEUE").unwrap().into()).await?;
                 {{ else  }}
                     let clientcpy = client.clone();
                     let context_jetstream = jetstream::new(clientcpy);
-                    let {{ (index . 1).unique_id }} = env.get("{{ (index . 1).unique_id }}_STREAM").unwrap();
+                    let {{ (index . 1).unique_id }} = config::get_env("{{ (index . 1).unique_id }}_STREAM").unwrap();
                     let consumer = get_consumer(&context_jetstream, &{{ (index . 1).unique_id }}).await?;
                 {{end}}
         {{ else }}
-            let mut {{ (index . 1).unique_id }} = client.subscribe(env.get("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into()).await?;
+            let mut {{ (index . 1).unique_id }} = client.subscribe(config::get_env("{{ (index . 1).unique_id}}_SUBJECT").unwrap().into()).await?;
         {{end}}
     {{end}}
 

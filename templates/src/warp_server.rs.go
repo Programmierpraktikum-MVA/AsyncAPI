@@ -2,6 +2,8 @@ use cargo_metadata::MetadataCommand;
 use warp::Filter;
 use serde_json;
 
+use crate::config::get_env;
+
 async fn life() -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!("alive\n"))
 }
@@ -42,7 +44,15 @@ pub async fn server() {
         .and(warp::path::end())
         .and_then(ready_func);
 
+    let port = match get_env("SERVICE_PORT") {
+        Some(port) => match port.parse::<u16>() {
+            Ok(port) => port,
+            Err(_) => panic!("SERVICE_PORT is not a valid port number"),
+        }
+        None => panic!("SERVICE_PORT not set"),
+    };
+
     warp::serve(liveness.or(readiness).or(metadata))
-        .run(([127, 0, 0, 1], 8000))
+        .run(([127, 0, 0, 1], port))
         .await;
 }
