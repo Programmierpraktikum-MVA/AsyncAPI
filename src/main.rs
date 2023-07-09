@@ -53,7 +53,6 @@ fn main() {
             std::process::exit(1);
         }
     };
-
     check_for_overwrite(output_path, title);
 
     // make output a compilable project in output_path

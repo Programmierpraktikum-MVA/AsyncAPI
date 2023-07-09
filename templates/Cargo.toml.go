@@ -15,3 +15,5 @@ dotenv = "0.15.0"
 clap = {version = "4.3.0", features = ["derive"]}
 opentelemetry = { version = "*", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "*", features = ["rt-tokio", "isahc_collector_client"] }
+log = "0.4.0"
+env_logger = "0.10.0"

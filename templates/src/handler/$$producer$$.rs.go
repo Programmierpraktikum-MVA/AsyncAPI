@@ -18,8 +18,8 @@ use opentelemetry::trace::Tracer;
     {{end}}
     {{if $isStream}}
         pub fn stream_handler_{{ .unique_id }}(message: jetstream::Message, client: &Client) {
-        let tracer = global::tracer("stream_handler_{{ (index . 1).unique_id }}");
-        let _span = tracer.start("{{ (index . 1).unique_id }}_stream_handler");
+        let tracer = global::tracer("stream_handler_{{ .unique_id }}");
+        let _span = tracer.start("{{ .unique_id }}_stream_handler");
         {{ range .messages }}
                 {{ if .payload}}
                     match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
@@ -48,8 +48,8 @@ use opentelemetry::trace::Tracer;
         }
     {{else}}
         pub async fn handler_{{ .unique_id }}(message: Message, client: &Client) {
-    let tracer = global::tracer("handler_{{ (index . 1).unique_id }}");
-            let _span = tracer.start("{{ (index . 1).unique_id }}_handler");
+    let tracer = global::tracer("handler_{{ .unique_id }}");
+            let _span = tracer.start("{{ .unique_id }}_handler");
     {{ range .messages }}
                 {{ if .payload}}
                 match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.payload.as_ref()) {
