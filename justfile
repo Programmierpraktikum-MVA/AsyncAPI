@@ -3,7 +3,7 @@ install:
     cargo build --release
 
 # Run the generator with the provided specification file, and optional title and output directory
-run-generator specfile_path="example/specs/basic.yaml" output="output" title="":
+run specfile_path="example/specs/basic.yaml" output="output" title="":
     set -e
     if [ -z "{{title}}" ]; then \
         cargo run --release -- --specification {{specfile_path}} --output {{output}}; \
@@ -21,7 +21,7 @@ test:
     cargo test
 
 # Generate documentation for the generator project
-generate-docs:
+doc:
     cargo doc --open
 
 # Clean up build artifacts
@@ -41,7 +41,7 @@ start-service service_name:
 
 # Generate documentation for the generated microservice
 # Uses the path to the last generated output directory with the provided service_name
-generate-service-docs service_name:
+service-doc service_name:
     if [ -f .last_output_directory ]; then \
         output_directory=$(cat .last_output_directory); \
         cd "$output_directory/{{service_name}}" && cargo doc --open; \
