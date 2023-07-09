@@ -69,6 +69,7 @@ fn main() {
             "src/utils/streams.go",
             "src/utils/common.go",
             "src/config/mod.go",
+            "src/tracing/mod.go",
         ],
     );
 
