@@ -63,7 +63,7 @@ pub fn simplify_message(
                             unique_parent_id
                         )
                         .as_str(),
-                        true,
+                        false,
                     );
                     let simplified_schema = simplify_schema(schema, &unique_id);
                     Some(simplified_schema)
