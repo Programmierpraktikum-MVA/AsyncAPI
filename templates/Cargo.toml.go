@@ -17,3 +17,5 @@ opentelemetry = { version = "*", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "*", features = ["rt-tokio", "isahc_collector_client"] }
 log = "0.4.0"
 env_logger = "0.10.0"
+cargo_metadata = "0.15.4"
+warp = "0.3.5"
