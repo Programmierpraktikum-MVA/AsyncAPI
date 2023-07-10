@@ -60,6 +60,7 @@ use log::{debug, warn};
                                 {{$enumName := .payload.unique_id}}
                                 {{ range .payload.related_models }}
                                     {{ $enumName }}::{{ .unique_id }}(payload) => {
+                            let policy_reply = opa_eval(message);
                                     // TODO: Replace this with your own handler code
                                     debug!("Received message payload {{ .unique_id }} {:?}", payload);
                                     }
