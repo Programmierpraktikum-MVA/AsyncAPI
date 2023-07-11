@@ -56,10 +56,7 @@ pub fn simplify_message(
                             format!("{}Message", unique_parent_id)
                         }
                     };
-                    unique_id = validate_identifier_string(
-                        &message_name,
-                        false,
-                    );
+                    unique_id = validate_identifier_string(&message_name, false);
                     let simplified_schema = simplify_schema(schema, &unique_id);
                     Some(simplified_schema)
                 } else {
