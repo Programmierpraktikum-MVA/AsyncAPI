@@ -1,2 +1,2 @@
-mod policy;
-use policy::*;
+pub mod policy;
+pub use policy::*;
