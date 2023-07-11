@@ -15,6 +15,7 @@ You can use a cli command to send a message directly on a specified channel for 
 ```
 cargo run -- -c destination/channel -m '{"test": "message"}'
 ```
+When manually sending messages, please use the property names as they are defined in the specification.
 Note, to run a second server please change the env variable `SERVICE_PORT` to a different port number.
 
 ## Tracing
