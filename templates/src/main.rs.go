@@ -2,6 +2,7 @@ mod handler;
 mod model;
 mod utils;
 mod cli;
+mod policy;
 mod warp_server;
 use clap::Parser;
 use crate::cli::*;

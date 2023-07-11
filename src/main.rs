@@ -57,7 +57,7 @@ fn main() {
 
     render_write_all_embedded_templates(&async_config, output_path);
     render_write_all_fs_templates(template_dir, &async_config, output_path);
-    println!("🚀 File generation finished, adding dependencies...");
+    println!("🚀 File generation finished, formatting generated files...");
 
     // runs cargo format on path
     cargo_command!("fmt", "--", output_path.join("src/main.rs"));
