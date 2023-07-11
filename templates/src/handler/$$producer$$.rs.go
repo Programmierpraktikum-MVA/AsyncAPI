@@ -1,6 +1,6 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
-use crate::{publish_message,stream_publish_message,model::*,config::*, utils::*};
+use crate::{publish_message,stream_publish_message,model::*,config::*,policy::*, utils::*};
 use std::{time, path::Path};
 use opentelemetry::global;
 use opentelemetry::trace::Tracer;
@@ -41,6 +41,7 @@ use log::{debug, warn, error};
                     match serde_json::from_value::<{{ .payload.struct_reference }}>(payload) {
                         Ok(deserialized_message) => {
                             debug!("Received message {:#?}", deserialized_message);
+                            let policy_reply = opa_eval(message);
                             // TODO: Replace this with your own handler code
                             {{ if eq .payload.model_type "enum"}}
                                 match deserialized_message {
@@ -91,6 +92,7 @@ use log::{debug, warn, error};
                                 {{$enumName := .payload.unique_id}}
                                 {{ range .payload.related_models }}
                                     {{ $enumName }}::{{ .unique_id }}(payload) => {
+                            let policy_reply = opa_eval(message);
                                     // TODO: Replace this with your own handler code
                                     debug!("Received message payload {{ .unique_id }} {:?}", payload);
                                     }

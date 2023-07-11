@@ -33,4 +33,6 @@ SCHEMA_VALIDATION_ENABLED = true
 {{ end }}
 
 
-
+OPA_ENABLED = false
+#OPA_REMOTE_URL = "localhost:4042"
+#OPA_LOCAL_WASM_PATH = "some/path"
