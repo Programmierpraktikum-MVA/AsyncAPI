@@ -50,19 +50,14 @@ pub fn simplify_message(
         let payload = match &message.payload {
             Some(schema) => {
                 if let Payload::Schema(schema) = schema {
+                    let message_name = match &message.name {
+                        Some(name) => name.to_string(),
+                        None => {
+                            format!("{}Message", unique_parent_id)
+                        }
+                    };
                     unique_id = validate_identifier_string(
-                        format!(
-                            "{}{}Message",
-                            message.name.as_ref().unwrap_or(
-                                schema
-                                    .schema_data
-                                    .name
-                                    .as_ref()
-                                    .unwrap_or(&String::from(""))
-                            ),
-                            unique_parent_id
-                        )
-                        .as_str(),
+                        &message_name,
                         false,
                     );
                     let simplified_schema = simplify_schema(schema, &unique_id);
