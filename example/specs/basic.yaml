@@ -19,24 +19,30 @@ channels:
           properties:
             username:
               type: string
+              minLength: 3
             password:
               type: string
+              minLength: 8
             age: 
               type: number
+              minimum: 18
     publish:
       operationId: userSignedUp
       summary: send welcome email to user
       message:
-         payload:
+        payload:
           name: userSignUpPayload
           type: object
           properties:
             username:
               type: string
+              minLength: 3
             password:
               type: string
+              minLength: 8
             age: 
               type: number
+              minimum: 18
   user/buy:
     subscribe:
       summary: User bought something
