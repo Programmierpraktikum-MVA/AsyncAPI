@@ -6,8 +6,13 @@ use crate::parser::common::{self, validate_identifier_string};
 pub fn preprocess_schema(spec: serde_json::Value) -> serde_json::Value {
     let with_message_names = fill_message_and_payload_names(spec.clone(), spec, false, false, None);
     let resolved_refs = resolve_refs(with_message_names.clone(), with_message_names);
+    let with_payload_schemas = duplicate_payload_schemas(resolved_refs.clone(), resolved_refs);
     let mut seen = HashSet::new();
-    sanitize_operation_ids_and_check_duplicate(resolved_refs.clone(), resolved_refs, &mut seen)
+    sanitize_operation_ids_and_check_duplicate(
+        with_payload_schemas.clone(),
+        with_payload_schemas,
+        &mut seen,
+    )
 }
 
 pub fn sanitize_operation_ids_and_check_duplicate(
@@ -86,6 +91,41 @@ pub fn resolve_refs(json: serde_json::Value, root_json: serde_json::Value) -> se
             let new_array = array
                 .into_iter()
                 .map(|value| resolve_refs(value, root_json.clone()))
+                .collect();
+            serde_json::Value::Array(new_array)
+        }
+        _ => json,
+    }
+}
+
+pub fn duplicate_payload_schemas(
+    json: serde_json::Value,
+    root_json: serde_json::Value,
+) -> serde_json::Value {
+    match json {
+        serde_json::Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+            for (key, value) in map {
+                if key == "payload" {
+                    if let serde_json::Value::Object(schema) = value {
+                        // insert schema as json string
+                        new_map.insert(
+                            "schema".into(),
+                            serde_json::Value::String(serde_json::to_string(&schema).unwrap()),
+                        );
+                        new_map.insert("payload".into(), serde_json::Value::Object(schema.clone()));
+                    }
+                } else {
+                    let new_value = duplicate_payload_schemas(value, root_json.clone());
+                    new_map.insert(key, new_value);
+                }
+            }
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(array) => {
+            let new_array = array
+                .into_iter()
+                .map(|value| duplicate_payload_schemas(value, root_json.clone()))
                 .collect();
             serde_json::Value::Array(new_array)
         }

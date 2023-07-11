@@ -14,7 +14,7 @@ use log::{debug, warn};
     /// {{ range .messages }}
     ///     {{ .unique_id }}
     /// {{ end }}
-    {{ if key_exists  "original_operation" "bindings" "nats" "streamname" }}
+    {{ if key_exists . "original_operation" "bindings" "nats" "streamname" }}
         {{ $isStream := .original_operation.bindings.nats.streamname }}
     {{ end }}
             

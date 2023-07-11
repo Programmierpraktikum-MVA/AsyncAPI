@@ -14,15 +14,21 @@ channels:
       summary: User signup notification
       message:
         payload:
+          name: userSignUpPayload
           type: object
           properties:
-            userSingnedUp:
+            username:
               type: string
+            password:
+              type: string
+            age: 
+              type: number
     publish:
       operationId: userSignedUp
       summary: send welcome email to user
       message:
          payload:
+          name: userSignUpPayload
           type: object
           properties:
             username:

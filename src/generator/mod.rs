@@ -6,4 +6,7 @@ pub use common::{
 mod model;
 pub use model::generate_models_folder;
 
+mod schemas;
+pub use schemas::generate_schemas_folder;
+
 mod template_functions;

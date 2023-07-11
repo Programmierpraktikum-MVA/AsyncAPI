@@ -169,6 +169,9 @@ use super::{
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Message {
+    #[serde(skip_serializing_if = "Option::is_none", rename = "schema")]
+    pub payload_schema: Option<String>,
+
     /// Schema definition of the application headers.
     /// Schema MUST be of type "object". It **MUST NOT** define the protocol headers.
     #[serde(skip_serializing_if = "Option::is_none")]

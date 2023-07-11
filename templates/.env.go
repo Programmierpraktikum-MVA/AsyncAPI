@@ -5,6 +5,7 @@ SERVER_URL = "{{ .server.url }}"
 LOG_LEVEL = "DEBUG"
 OPA_RULES= "path/to/admin/policy"
 TRACING_ENABLED = false
+SCHEMA_VALIDATION_ENABLED = true
 
 ################Channel wise Config################
 {{ range .subscribe_channels }}

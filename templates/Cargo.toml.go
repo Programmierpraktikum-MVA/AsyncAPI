@@ -20,4 +20,5 @@ env_logger = "0.10.0"
 cargo_metadata = "0.15.4"
 warp = "0.3.5"
 lazy_static = "1.4"
+jsonschema = "0.17.0"
 

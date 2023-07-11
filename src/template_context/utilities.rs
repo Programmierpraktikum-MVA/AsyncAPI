@@ -77,6 +77,7 @@ pub fn simplify_message(
             unique_id,
             original_message: message.clone(),
             payload,
+            payload_schema: message.payload_schema.clone(),
         }
     } else {
         panic!("Refs should be resolved by now");
@@ -84,32 +85,9 @@ pub fn simplify_message(
 }
 
 pub fn simplify_schema(schema: &Schema, unique_parent_id: &str) -> RustSchemaRepresentation {
-    parse_json_schema_to_rust_type(schema, unique_parent_id).unwrap()
-    // let rust_schema = parse_json_schema_to_rust_type(schema, unique_parent_id).unwrap();
-    // let mut schema_source = rust_schema.related_models.clone();
-    // schema_source.push(rust_schema.clone());
-    // let schemas = schema_source
-    //     .into_iter().map(|s| s.model_definition).collect::<Vec<String>>().join("\n");
-    // let struct_name =rust_schema.identifier.clone();
-    // TODO: this whole thing will need to be refactored, there's no way this will work in this form
-    // the idea is that we need to get the payload enum and its members out of the schema
-    // but we save it as string only... so the whole parsing function will need to be restructured and way more modular
-    // why you ask? we want to automatically generate match code for the payload, but currently it wont work without refactor
-
-    // let payload_enum_name = format!("{}PayloadEnum", unique_parent_id);
-    // let mut multiple_payload_enum = None;
-    // if schemas.contains_key(&payload_enum_name) {
-    //     multiple_payload_enum = Some(MultiStructEnum {
-    //         unique_id: payload_enum_name,
-    //         messages: vec![],
-    //         struct_definition: "".to_string(),
-    //     });
-    // }
-    // RustSchemaRepresentation {
-    //     unique_id: unique_parent_id.to_string(),
-    //     original_schema: schema.clone(),
-    //     struct_definition: schemas,
-    //     struct_names: vec![struct_name],
-    //     // multiple_payload_enum: None,
-    // }
+    let schema_name = match &schema.schema_data.name {
+        Some(name) => validate_identifier_string(name, false),
+        None => validate_identifier_string(unique_parent_id, false),
+    };
+    parse_json_schema_to_rust_type(schema, &schema_name).unwrap()
 }

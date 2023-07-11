@@ -1,10 +1,10 @@
 use async_nats::{Client, Message, jetstream};
 use async_nats::jetstream::Context;
-use crate::{publish_message,stream_publish_message,model::*,config::*};
-use std::time;
+use crate::{publish_message,stream_publish_message,model::*,config::*, utils::*};
+use std::{time, path::Path};
 use opentelemetry::global;
 use opentelemetry::trace::Tracer;
-use log::{debug, warn};
+use log::{debug, warn, error};
 
     {{ $isStream := false }}
 
@@ -13,7 +13,7 @@ use log::{debug, warn};
     /// {{ range .messages }}
     ///     {{ .unique_id }}
     /// {{ end }}
-    {{if key_exists  "original_operation" "bindings" "nats" "streamname"}}
+    {{if key_exists . "original_operation" "bindings" "nats" "streamname"}}
         {{ $isStream := (.original_operation.bindings.nats.streamname) }}
     {{end}}
     {{if $isStream}}
@@ -22,7 +22,23 @@ use log::{debug, warn};
         let _span = tracer.start("{{ .unique_id }}_stream_handler");
         {{ range .messages }}
                 {{ if .payload}}
-                    match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.message.payload.as_ref()) {
+                    let payload = match serde_json::from_slice::<serde_json::Value>(&message.message.payload) {
+                        Ok(payload) => payload,
+                        Err(_) => {
+                            error!("Failed to deserialize message payload, make sure payload is a valid json: user_signed_up_message\nOriginal message: {:#?}", message);
+                            return;
+                        }
+                    };
+                    {{ if .payload_schema}}
+                        if let Err(e) =validate_message_schema(
+                            Path::new("./src/schemas/{{ .unique_id }}_payload_schema.json"),
+                            &payload,
+                        ) {
+                            error!("Failed to validate message schema: user_signed_up_message\nOriginal message: {:#?}\nError: {}", message, e);
+                            return;
+                        }
+                    {{ end }}
+                    match serde_json::from_value::<{{ .payload.struct_reference }}>(payload) {
                         Ok(deserialized_message) => {
                             debug!("Received message {:#?}", deserialized_message);
                             // TODO: Replace this with your own handler code
@@ -48,11 +64,27 @@ use log::{debug, warn};
         }
     {{else}}
         pub async fn handler_{{ .unique_id }}(message: Message, client: &Client) {
-    let tracer = global::tracer("handler_{{ .unique_id }}");
+            let tracer = global::tracer("handler_{{ .unique_id }}");
             let _span = tracer.start("{{ .unique_id }}_handler");
-    {{ range .messages }}
+            {{ range .messages }}
                 {{ if .payload}}
-                match serde_json::from_slice::<{{ .payload.struct_reference }}>(&message.payload.as_ref()) {
+                    let payload = match serde_json::from_slice::<serde_json::Value>(&message.payload) {
+                        Ok(payload) => payload,
+                        Err(_) => {
+                            error!("Failed to deserialize message payload, make sure payload is a valid json: user_signed_up_message\nOriginal message: {:#?}", message);
+                            return;
+                        }
+                    };
+                    {{ if .payload_schema}}
+                        if let Err(e) =validate_message_schema(
+                            Path::new("./src/schemas/{{ .unique_id }}_payload_schema.json"),
+                            &payload,
+                        ) {
+                            error!("Failed to validate message schema: user_signed_up_message\nOriginal message: {:#?}\nError: {}", message, e);
+                            return;
+                        }
+                    {{ end }}
+                match serde_json::from_value::<{{ .payload.struct_reference }}>(payload) {
                     Ok(deserialized_message) => {
                         {{ if eq .payload.model_type "enum"}}
                             match deserialized_message {
