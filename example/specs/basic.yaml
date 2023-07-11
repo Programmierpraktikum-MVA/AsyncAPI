@@ -17,7 +17,7 @@ channels:
           name: userSignUpPayload
           type: object
           properties:
-            username:
+            userName:
               type: string
               minLength: 3
             password:
@@ -34,7 +34,7 @@ channels:
           name: userSignUpPayload
           type: object
           properties:
-            username:
+            userName:
               type: string
               minLength: 3
             password:
