@@ -38,3 +38,5 @@ For more information, visit the [Jaeger website](https://www.jaegertracing.io/do
 The generated microservice uses json schemas for validating the message payload. The schema is the one defined in the specification. Settings like minimum etc. which are supported by json schema can be added there.
 The schemas are located in the `schemas` folder. The schema is validated against the message payload in the handler function, you can turn this validation off by changing the SCHEMA_VALIDATION_ENABLED env variable to false.
 
+Warning: Message validation currently has a high performance cost, so it is recommended to only use it in development. in production the schemas in the generated schema folder could be used to feed a schema registry, which can be used to validate the messages. [asyncapi doc](https://www.asyncapi.com/docs/guides/message-validation#schema-registry-validation)
+
