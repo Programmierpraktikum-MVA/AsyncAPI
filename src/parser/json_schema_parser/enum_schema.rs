@@ -33,6 +33,7 @@ pub fn parse_enum_schema(
     string_builder.push_str("}\n");
     Ok(RustSchemaRepresentation {
         unique_id: identifyer.clone(),
+        original_key: property_name.to_string(),
         struct_reference: identifyer,
         model_definition: string_builder,
         model_type: "enum".to_string(),

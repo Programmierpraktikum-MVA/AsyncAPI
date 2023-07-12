@@ -24,4 +24,5 @@ opa-wasm = { git = "https://github.com/matrix-org/rust-opa-wasm.git" }
 cargo_metadata = "0.15.4"
 warp = "0.3.5"
 lazy_static = "1.4"
+jsonschema = "0.17.0"
 

@@ -8,7 +8,7 @@ use std::io::{self, Error};
 use std::path::Path;
 use walkdir::WalkDir;
 
-use super::generate_models_folder;
+use super::{generate_models_folder, generate_schemas_folder};
 
 /// runs cargo command with options
 /// Example: ` cargo_command!("init","--bin","path"); `
@@ -165,6 +165,10 @@ fn separate_files(
     }
     if template_path.contains("$$model$$") {
         generate_models_folder(template_str, context, output_dir);
+        return Ok(true);
+    }
+    if template_path.contains("$$schemas$$") {
+        generate_schemas_folder(template_str, context, output_dir);
         return Ok(true);
     }
     Ok(false)
