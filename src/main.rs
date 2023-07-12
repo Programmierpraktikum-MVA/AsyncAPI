@@ -51,7 +51,6 @@ fn main() {
         }
     };
     check_for_overwrite(output_path, title);
-
     // make output a compilable project in output_path
     cargo_command!("init", "--bin", output_path);
 

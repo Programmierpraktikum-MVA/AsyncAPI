@@ -44,16 +44,9 @@ pub struct SimplifiedMessage {
     pub unique_id: String,
     pub original_message: Message,
     pub payload: Option<RustSchemaRepresentation>,
+    pub payload_schema: Option<String>,
 }
-// #[derive(Serialize, Debug, Clone)]
 
-// pub struct SimplifiedSchema {
-//     pub unique_id: String,
-//     pub original_schema: Schema,
-//     pub struct_definition: String,
-//     pub struct_names: Vec<String>,
-//     // pub multiple_payload_enum: Option<MultiStructEnum>,
-// }
 /// FIXME: these are just a quick workaround until gtmpl::Value supports `From<impl Serialize> for gtmpl::Value`
 impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
     fn from(value: &TemplateContext<'a>) -> Self {
@@ -63,6 +56,13 @@ impl<'a> From<&TemplateContext<'a>> for gtmpl::Value {
 }
 impl From<&SimplifiedOperation> for gtmpl::Value {
     fn from(value: &SimplifiedOperation) -> Self {
+        let json_value: serde_json::Value = serde_json::to_value(value).unwrap();
+        serde_value_to_gtmpl_value(&json_value)
+    }
+}
+
+impl From<&SimplifiedMessage> for gtmpl::Value {
+    fn from(value: &SimplifiedMessage) -> Self {
         let json_value: serde_json::Value = serde_json::to_value(value).unwrap();
         serde_value_to_gtmpl_value(&json_value)
     }

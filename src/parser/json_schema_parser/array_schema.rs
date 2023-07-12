@@ -35,6 +35,7 @@ pub fn parse_array_schema(
     // ))
     Ok(RustSchemaRepresentation {
         unique_id: identifyer,
+        original_key: property_name.to_string(),
         struct_reference: format!("Vec<{}>", item_type),
         model_definition: "".to_string(),
         related_models: vec![],

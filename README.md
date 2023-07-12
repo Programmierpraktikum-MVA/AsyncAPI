@@ -54,11 +54,16 @@ just service-doc {project-id} # Alternatively, you can use 'cd output/{project-i
 
 Remember to replace `{project-id}` with the name of your generated microservice (`title` field from the provided spec).
 
+## Types
+Rust types will be generated in the models folder according to the given payload json schema definitions. Names will be generated according to channels etc, if you want to share a payload type between two messages, make sure to use the same "name" property in the payload. Warning: This will not check if the types of those payloads are actually the same, so make sure to use the same schema or better even, simply a ref to the schema with the name. By default, all defined properties are required and no additional properties are allowed, if you want to use optional types, please modify the generated types after generation or use oneOf/anyOf/allOf to represent optional types.
+
 ## Limitations
 
 - Only json payloads are currently supported for automatic deserialization
 - Only one server is currently supported and only nats protocol is supported
 - Only one message is currently supported per channel, payloads can be choosen freely including anyOf/oneOf/allOf
+- The generated rust types are required by default, if you want to use optional types, please modify the generated types after generation or use oneOf/anyOf/allOf to represent optional types
+- references in the specification are only suppported inside the same file, external references are not supported
 
 ## Contribute
 

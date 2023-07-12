@@ -4,6 +4,7 @@ use serde::Serialize;
 pub struct RustSchemaRepresentation {
     // the unique identifier (e.g. UserSignupMessage)
     pub unique_id: String,
+    pub original_key: String,
     // used to reference the model (e.g. UserSignupMessage, but for primitive schemas simply the primitive type e.g. String/f64)
     pub struct_reference: String,
     // model definition (e.g. pub struct UserSignupMessage { ... } or pub enum UserSignupMessage { ... }, is empty for primitive types)

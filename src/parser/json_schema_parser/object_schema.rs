@@ -10,6 +10,7 @@ pub fn parse_object_schema(
     property_name: &str,
 ) -> Result<RustSchemaRepresentation, SchemaParserError> {
     let identifyer = validate_identifier_string(property_name, true);
+
     let before_string: String = format!(
         "#[derive(Clone, Debug, Deserialize, Serialize)]\npub struct {} {{\n",
         identifyer
@@ -39,13 +40,20 @@ pub fn parse_object_schema(
 
     let property_string = unwrapped_property_types
         .iter()
-        .map(|x| format!("pub {}: {}", x.unique_id, x.struct_reference))
+        .map(|x| {
+            let rename = match x.original_key == x.unique_id.as_str() {
+                true => "".to_string(),
+                false => format!("#[serde(rename = \"{}\")]\n", x.original_key),
+            };
+            format!("{}pub {}: {}", rename, x.unique_id, x.struct_reference)
+        })
         .collect::<Vec<String>>()
         .join(",\n");
     let full_struct = before_string + &property_string + &after_string;
 
     let representation: RustSchemaRepresentation = RustSchemaRepresentation {
         unique_id: identifyer.clone(),
+        original_key: property_name.to_string(),
         struct_reference: identifyer,
         model_definition: full_struct,
         related_models: unwrapped_property_types,
