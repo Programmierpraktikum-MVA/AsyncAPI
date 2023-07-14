@@ -13,7 +13,7 @@ pub struct Args {
     /// The output directory
     /// If not specified, the output will be written to ./output/
     /// If the directory does not exist, it will be created
-    #[arg(short, long, default_value = "./output/")]
+    #[arg(short, long, default_value = "output")]
     pub output: String,
 
     /// The name of the project
@@ -28,4 +28,8 @@ pub struct Args {
     ///Optionally enable logging in generated Microservice
     #[arg(short, long, default_value = "false")]
     pub log: bool,
+
+    ///Optionally provide directory for additional templates
+    #[arg(short, long, default_value = "user_templates")]
+    pub user_templates: String,
 }

@@ -5,6 +5,7 @@
 - Any templates that in the templates folder at compilation time will be embedded in the compiled binary.
 - If you only have the binary you can put templates in the folder ~user-templates~.
   If a file from the ~user-templates~ folder has the same path as an embedded template, only the template from ~user-template~ will be rendered.
+  - set the command line argument ~--user-templates~ or ~-u~ to set a custom folder
 - the last file extension will be removed e.g: ~file.rs.go~ will be rendered to ~file.rs~.
 ** What fields are available inside templates?
 - Any of these fields will be accessible:
@@ -50,6 +51,7 @@ pub struct SimplifiedMessage {
   - ~$$handler$$~
   - ~$$producer$$~
   - ~$$model$$~
+  - ~$$schemas$$~
 ** Functions available inside the templates
 - ~to_lower(input: String) -> String~ converts String to lowercase
 - ~key_exists(input: String) -> String~ checks if key exists

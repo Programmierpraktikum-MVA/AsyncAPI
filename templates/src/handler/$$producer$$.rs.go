@@ -25,7 +25,7 @@ use log::{debug, warn, error};
                     let payload = match serde_json::from_slice::<serde_json::Value>(&message.message.payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            error!("Failed to deserialize message payload, make sure payload is a valid json: user_signed_up_message\nOriginal message: {:#?}", message);
+                            error!("Failed to deserialize message payload, make sure payload is a valid json: {{ .unique_id }}\nOriginal message: {:#?}", message);
                             return;
                         }
                     };
@@ -34,7 +34,7 @@ use log::{debug, warn, error};
                             Path::new("./src/schemas/{{ .unique_id }}_payload_schema.json"),
                             &payload,
                         ) {
-                            error!("Failed to validate message schema: user_signed_up_message\nOriginal message: {:#?}\nError: {}", message, e);
+                            error!("Failed to validate message schema: {{ .unique_id }}\nOriginal message: {:#?}\nError: {}", message, e);
                             return;
                         }
                     {{ end }}
@@ -72,7 +72,7 @@ use log::{debug, warn, error};
                     let payload = match serde_json::from_slice::<serde_json::Value>(&message.payload) {
                         Ok(payload) => payload,
                         Err(_) => {
-                            error!("Failed to deserialize message payload, make sure payload is a valid json: user_signed_up_message\nOriginal message: {:#?}", message);
+                            error!("Failed to deserialize message payload, make sure payload is a valid json: {{ .unique_id }}\nOriginal message: {:#?}", message);
                             return;
                         }
                     };
@@ -81,7 +81,7 @@ use log::{debug, warn, error};
                             Path::new("./src/schemas/{{ .unique_id }}_payload_schema.json"),
                             &payload,
                         ) {
-                            error!("Failed to validate message schema: user_signed_up_message\nOriginal message: {:#?}\nError: {}", message, e);
+                            error!("Failed to validate message schema: {{ .unique_id }}\nOriginal message: {:#?}\nError: {}", message, e);
                             return;
                         }
                     {{ end }}
