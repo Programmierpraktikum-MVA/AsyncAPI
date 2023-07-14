@@ -7,7 +7,7 @@ use clap::Parser;
 pub struct Args {
     // Add a positional argument that the user has to supply:
     /// The specification file to parse      
-    #[arg(short, long, default_value = "./example/specs/basic.yaml")]
+    #[arg(short, long)]
     pub specification: String,
 
     /// The output directory
