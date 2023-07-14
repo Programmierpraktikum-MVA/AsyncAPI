@@ -65,7 +65,8 @@ fn main() {
         "fix",
         "--manifest-path",
         output_path.join("Cargo.toml"),
-        "--allow-dirty"
+        "--allow-dirty",
+        "--allow-staged"
     );
 
     if args.doc {

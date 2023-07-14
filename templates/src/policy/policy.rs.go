@@ -2,12 +2,11 @@ use anyhow::{anyhow, Result};
 use opa_wasm::Runtime;
 use reqwest::{self, Body, Client, IntoUrl, Response};
 use serde::Serialize;
-use std::{env, fs, path::Path};
+use std::env;
 use wasmtime::{Config, Engine, Module, Store};
 
-pub async fn opa_eval<I>(input: I) -> Result<serde_json::Value>
+pub async fn opa_eval<I>(input: &I) -> Result<serde_json::Value>
 where
-    Body: From<I>,
     I: Serialize,
 {
     if let Ok(enabled) = env::var("OPA_ENABLED") {
@@ -18,7 +17,7 @@ where
     }
     if let Ok(url) = env::var("OPA_REMOTE_URL") {
         let url: String = url.parse().unwrap();
-        return opa_eval_remote(url, input).await;
+        return opa_eval_remote(url, serde_json::to_string(&input)?).await;
     }
     if let Ok(path) = env::var("OPA_LOCAL_WASM_PATH") {
         let path: String = path.parse().unwrap();
