@@ -25,7 +25,7 @@ fn main() {
     let specfile_path = Path::new(&args.specification);
     println!("📄 Using specification file {:?}", specfile_path);
 
-    let template_dir = Path::new("./user_templates/");
+    let user_template_dir = Path::new(&args.user_templates);
 
     let spec: AsyncAPI = match parser::asyncapi_model_parser::parse_spec_to_model(specfile_path) {
         Ok(spec) => spec,
@@ -55,11 +55,11 @@ fn main() {
     cargo_command!("init", "--bin", output_path);
 
     render_write_all_embedded_templates(&async_config, output_path);
-    render_write_all_fs_templates(template_dir, &async_config, output_path);
+    render_write_all_fs_templates(user_template_dir, &async_config, output_path).unwrap();
     println!("🚀 File generation finished, formatting generated files...");
 
     // runs cargo format on path
-    cargo_command!("fmt", "--", output_path.join("src/main.rs"));
+    cargo_command!("fmt", "--", output_path.join("src").join("main.rs"));
     // cargo fix, mostly for cleaning unused imports
     cargo_command!(
         "fix",

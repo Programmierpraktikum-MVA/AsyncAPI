@@ -89,22 +89,25 @@ pub fn render_write_all_fs_templates(
     template_dir: &Path,
     context: &TemplateContext,
     output_path: &Path,
-) {
+) -> Result<(), Error> {
     for template_dir_entry in WalkDir::new(template_dir)
         .into_iter()
         .filter_map(|x| x.ok())
     {
         let template_path = &template_dir_entry.path();
         if template_path.is_file() {
-            let template = read_to_string(template_path).unwrap();
+            let template = read_to_string(template_path)?;
             render_write_dependant(
-                template_path.strip_prefix(template_dir).unwrap(),
+                template_path
+                    .strip_prefix(template_dir)
+                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?,
                 template,
                 context,
                 output_path,
             );
         }
     }
+    Ok(())
 }
 
 /// renders and writes all templates in `template_file_paths` to `output_path`/`template_file_path`
