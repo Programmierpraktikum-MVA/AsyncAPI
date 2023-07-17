@@ -6,3 +6,4 @@
     - [How to write templates](generator/templates.md)
 - [Microservice](generator/README.md)
     - [Architecture](generator/architecture.md)
+    - [Environment Variables](generator/environment.md)
