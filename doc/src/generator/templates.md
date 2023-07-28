@@ -11,7 +11,7 @@
 
 ## What fields are available inside templates?
 
--   Any of these fields will be accessible:
+Any of these fields will be accessible:
 ```rust,noplayground
     pub struct TemplateContext<'a> {
         pub title: &'a String,
@@ -53,20 +53,21 @@
 
 ## Render to separate files
 
--   It is possible to generate files for each specific object in your AsyncAPI documentation. For example, you can specify a filename like `$$handler$$.rs.go` to generate a file for each `publish_channel` defined in your AsyncAPI spec.
-    This works with file templates that include the following in their name:
-    -   `$$handler$$`
-    -   `$$producer$$`
-    -   `$$model$$`
-    -   `$$schemas$$`
+It is possible to generate files for each specific object in your AsyncAPI documentation. For example, you can specify a filename like `$$handler$$.rs.go` to generate a file for each `publish_channel` defined in your AsyncAPI spec.
+
+This works with file templates that include the following in their name:
+- `$$handler$$`
+- `$$producer$$`
+- `$$model$$`
+- `$$schemas$$`
 
 
 
 ## Functions available inside the templates
 
--   `to_lower(input: String) -> String` converts String to lowercase
--   `key_exists(input: String) -> String` checks if key exists
--   `camel_to_snake_case(input :String) -> String` converts a String in camelCase to snake_case
--   `replace(input: String, from: String, to: String) -> String` replaces `from` with `to` for `input`
-    -   Side Note: these functions are defined in  `src/generator/template_functions.rs` feel free to extend then, if you have access to the source code.
+- `to_lower(input: String) -> String` converts String to lowercase
+- `key_exists(input: String) -> String` checks if key exists
+- `camel_to_snake_case(input :String) -> String` converts a String in camelCase to snake_case
+- `replace(input: String, from: String, to: String) -> String` replaces `from` with `to` for `input`
+  - Side Note: these functions are defined in  `src/generator/template_functions.rs` feel free to extend then, if you have access to the source code.
 

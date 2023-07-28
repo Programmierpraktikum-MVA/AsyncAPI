@@ -13,3 +13,6 @@
     - [How it works]()
     - [Usage]()
     - [Environment Variables](microservice/environment.md)
+    - [Working with Open Policy Agent](microservice/opa.md)
+    - [Tracing]()
+    - [Metadata server]()
