@@ -74,15 +74,15 @@ Contributions are always welcome! Please read the [contribution guidelines](CONT
 
 ## Authors
 
-|   Name         |   GitHub Username   |
-|----------------|---------------------|
-| Aiko Kipka     | @aikokal            |
-| Andreas Rother | @andreas-rot       |
-| Felix Dumbeck  | @f-eliks            |
-| Jacob Große    | @jacobGr-afk        |
-| Niclas Doepner | @doepnern           |
-| Ori Toledo Cohen | @oritoledo        |
-| Stanislav Kosorin | @stano45         |
+| Name              | GitHub                                         |
+| ----------------- | ---------------------------------------------- |
+| Aiko Kipka        | [@aikokal](https://github.com/aikokal)         |
+| Andreas Rother    | [@andreas-rot](https://github.com/andreas-rot) |
+| Felix Dumbeck     | [@f-eliks](https://github.com/f-eliks)         |
+| Jacob Große       | [@jacobGr-afk](https://github.com/jacobGr-afk) |
+| Niclas Doepner    | [@doepnern](https://github.com/doepnern)       |
+| Ori Toledo Cohen  | [@oritoledo](https://github.com/oritoledo)     |
+| Stanislav Kosorin | [@stano45](https://github.com/stano45)         |
 
 
 ## License
