@@ -11,8 +11,10 @@ Crustagen is a Rust code generator that takes AsyncAPI specifications as input a
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Types](#types)
   - [Limitations](#limitations)
   - [Contribute](#contribute)
+  - [Authors](#authors)
   - [License](#license)
 
 ## Requirements
@@ -69,6 +71,19 @@ Rust types will be generated in the models folder according to the given payload
 ## Contribute
 
 Contributions are always welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
+
+## Authors
+
+|   Name         |   GitHub Username   |
+|----------------|---------------------|
+| Aiko Kipka     | @aikokal            |
+| Andreas Rother | @andreas-rot       |
+| Felix Dumbeck  | @f-eliks            |
+| Jacob Große    | @jacobGr-afk        |
+| Niclas Doepner | @doepnern           |
+| Ori Toledo Cohen | @oritoledo        |
+| Stanislav Kosorin | @stano45         |
+
 
 ## License
 
