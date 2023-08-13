@@ -74,6 +74,9 @@ Contributions are always welcome! Please read the [contribution guidelines](CONT
 
 ## Authors
 
+This project originated as a hands-on assignment for the MVA Praktikum course at the Technical University of Berlin. 
+The initial authors and their corresponding GitHub profiles are listed below:
+
 | Name              | GitHub                                         |
 | ----------------- | ---------------------------------------------- |
 | Aiko Kipka        | [@aikokal](https://github.com/aikokal)         |
